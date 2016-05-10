@@ -1,0 +1,8 @@
+# Ignored
+*.zip
+*.7z
+*.bat
+*.txt
+Archives.ks
+*test*.*
+*.pyproj
