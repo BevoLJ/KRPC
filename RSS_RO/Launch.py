@@ -1,22 +1,17 @@
 import krpc, time, math
-import argparse ### T O   A D D ### Parking Orbit, ...
-from Telemetry import Orb_info, Vessel_info
-from Flight import Target_orb, init_Azumuth
+import argparse ### T O   A D D ### Parking Orbit, inc
+import Telemetry, Flight
+from Telemetry import _Telemetry, Target_orb
+from Flight import Azumuth_init, Gravity_pitch, engine_Actions
 
-Tar_orb = 250000  # Target parking orbit. NOTE: add arg
-inc = 29
+Tar_orb = 175000    # Target parking orbit. N O T E: add arg
+inc = 29            # Target inclination.   N O T E: add arg
 
-class setup:
-    def __init__(self):
-        self.conn = krpc.connect( name='A4 Launch Program', address='127.0.0.1', rpc_port=50000, stream_port=50001)
-        self.KSC = self.conn.space_center
-        self.vessel = self.KSC.active_vessel
-        self.control = self.vessel.control
+tel = _Telemetry()
+Tar = Target_orb(Tar_orb, tel)
+Az = Azumuth_init(Tar, inc, tel)
+Pitch = Gravity_pitch(Tar, tel).pitch
 
-orb = Orb_info(setup())
-ves = Vessel_info(setup())
-Tar = Target_orb(Tar_orb, orb)
-Az = init_Azumuth(Tar, inc, orb)
+cur_stage_engs = tel.cur_stage_engs
 
-while True:
-    print(Az.Az)
+engine_Actions(tel,cur_stage_engs,'Activate Engine')
