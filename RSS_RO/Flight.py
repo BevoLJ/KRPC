@@ -49,7 +49,6 @@ def engine_Actions(tel,eng_to_activate,action):
 			for mod in mods:
 				if mod.name == "ModuleEnginesRF":
 					m = mod
-					print (m.actions)
 					m.set_action(action,True)
 
 
