@@ -54,18 +54,7 @@ def azimuth_init(tar):
     if (180 - math.fabs(tel.Lat())) < _inc:
         _inc = (180 - math.fabs(tel.Lat()))
 
-<<<<<<< HEAD
     velocity_eq = ((2 * math.pi * tel.Radius()) / tel.Rot_p())
-=======
-def engine_Actions(tel,eng_to_activate,action):
-	for eng in tel.engines:
-		if eng.name == eng_to_activate[0]:
-			mods = eng.modules
-			for mod in mods:
-				if mod.name == "ModuleEnginesRF":
-					m = mod
-					m.set_action(action,True)
->>>>>>> origin/master
 
     inert_az = math.asin(max(min(math.cos(_inc / math.cos(tel.Lat())), 1), -1))
     _VXRot = tar.T_orb_V * math.sin(inert_az) - velocity_eq * math.cos(tel.Lat())
