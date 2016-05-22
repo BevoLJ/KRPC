@@ -1,20 +1,20 @@
 from PyQt5 import QtCore, QtWidgets
-from Telemetry import Telemetry, TargetOrb
-from Flight import azimuth_init, gravity_pitch
 
+from Flight import cur_stage, twr, gravity_pitch, ap_v_dv, azimuth_init
+from Telemetry import Readings
+
+
+tel = Readings()
 Tar_orb = 175000
 inc = 29
 
-tel = Telemetry()
-tar = TargetOrb(Tar_orb)
-Az = azimuth_init(tar)
-Pitch = gravity_pitch(tar)
-
 
 class UiForm(object):
+
     # noinspection PyArgumentList
     def __init__(self, form):
         super().__init__()
+        # \todo\ Mode for Orbital Insertion
         # -#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
         #           G U I  L A Y O U T           #
         # -#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
@@ -22,6 +22,7 @@ class UiForm(object):
         form.setObjectName("Form")
         form.resize(612, 360)
         form.setMinimumSize(QtCore.QSize(400, 230))
+
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(form)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.main_layout = QtWidgets.QVBoxLayout()
@@ -42,6 +43,36 @@ class UiForm(object):
         self.LCD_Section.setObjectName("LCD_Section")
         self.verticalLayout_7 = QtWidgets.QVBoxLayout()
         self.verticalLayout_7.setObjectName("verticalLayout_7")
+
+        self.line = QtWidgets.QFrame(form)
+        self.line.setFrameShape(QtWidgets.QFrame.HLine)
+        self.line.setObjectName("line")
+        self.line2 = QtWidgets.QFrame(form)
+        self.line2.setFrameShape(QtWidgets.QFrame.HLine)
+        self.line2.setObjectName("line2")
+        self.line3 = QtWidgets.QFrame(form)
+        self.line3.setFrameShape(QtWidgets.QFrame.HLine)
+        self.line3.setObjectName("line3")
+        self.line4 = QtWidgets.QFrame(form)
+        self.line4.setFrameShape(QtWidgets.QFrame.HLine)
+        self.line4.setObjectName("line4")
+        self.line5 = QtWidgets.QFrame(form)
+        self.line5.setFrameShape(QtWidgets.QFrame.HLine)
+        self.line5.setObjectName("line5")
+        self.line6 = QtWidgets.QFrame(form)
+        self.line6.setFrameShape(QtWidgets.QFrame.HLine)
+        self.line6.setObjectName("line6")
+        self.line7 = QtWidgets.QFrame(form)
+        self.line7.setFrameShape(QtWidgets.QFrame.HLine)
+        self.line7.setObjectName("line7")
+        self.line8 = QtWidgets.QFrame(form)
+        self.line8.setFrameShape(QtWidgets.QFrame.HLine)
+        self.line8.setObjectName("line8")
+
+        # -#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+        #         L E F T   L A B E L S          #
+        # -#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+
         self.left_lvl_1 = QtWidgets.QLabel(form)
         self.left_lvl_1.setObjectName("left_lvl_1")
         self.verticalLayout_7.addWidget(self.left_lvl_1)
@@ -54,15 +85,29 @@ class UiForm(object):
         self.left_lbl_4 = QtWidgets.QLabel(form)
         self.left_lbl_4.setObjectName("left_lbl_4")
         self.verticalLayout_7.addWidget(self.left_lbl_4)
+        self.verticalLayout_7.addWidget(self.line)
         self.left_lbl_5 = QtWidgets.QLabel(form)
         self.left_lbl_5.setObjectName("left_lbl_5")
         self.verticalLayout_7.addWidget(self.left_lbl_5)
         self.left_lbl_6 = QtWidgets.QLabel(form)
         self.left_lbl_6.setObjectName("left_lbl_6")
         self.verticalLayout_7.addWidget(self.left_lbl_6)
+        self.verticalLayout_7.addWidget(self.line2)
+        self.left_lbl_7 = QtWidgets.QLabel(form)
+        self.left_lbl_7.setObjectName("left_lbl_7")
+        self.verticalLayout_7.addWidget(self.left_lbl_7)
+        self.left_lbl_8 = QtWidgets.QLabel(form)
+        self.left_lbl_8.setObjectName("left_lbl_8")
+        self.verticalLayout_7.addWidget(self.left_lbl_8)
+
         self.LCD_Section.addLayout(self.verticalLayout_7)
         self.verticalLayout_6 = QtWidgets.QVBoxLayout()
         self.verticalLayout_6.setObjectName("verticalLayout_6")
+
+        # -#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+        #           L E F T   L C D s            #
+        # -#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+
         self.left_lcd_1 = QtWidgets.QLCDNumber(form)
         self.left_lcd_1.setObjectName("left_lcd_1")
         self.verticalLayout_6.addWidget(self.left_lcd_1)
@@ -75,16 +120,29 @@ class UiForm(object):
         self.left_lcd_4 = QtWidgets.QLCDNumber(form)
         self.left_lcd_4.setObjectName("left_lcd_4")
         self.verticalLayout_6.addWidget(self.left_lcd_4)
+        self.verticalLayout_6.addWidget(self.line3)
         self.left_lcd_5 = QtWidgets.QLCDNumber(form)
         self.left_lcd_5.setObjectName("left_lcd_5")
         self.verticalLayout_6.addWidget(self.left_lcd_5)
         self.left_lcd_6 = QtWidgets.QLCDNumber(form)
         self.left_lcd_6.setObjectName("left_lcd_6")
-
         self.verticalLayout_6.addWidget(self.left_lcd_6)
+        self.verticalLayout_6.addWidget(self.line4)
+        self.left_lcd_7 = QtWidgets.QLCDNumber(form)
+        self.left_lcd_7.setObjectName("left_lcd_7")
+        self.verticalLayout_6.addWidget(self.left_lcd_7)
+        self.left_lcd_8 = QtWidgets.QLCDNumber(form)
+        self.left_lcd_8.setObjectName("left_lcd_8")
+        self.verticalLayout_6.addWidget(self.left_lcd_8)
+
         self.LCD_Section.addLayout(self.verticalLayout_6)
         self.verticalLayout_5 = QtWidgets.QVBoxLayout()
         self.verticalLayout_5.setObjectName("verticalLayout_5")
+
+        # -#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+        #        R I G H T   L A B E L S         #
+        # -#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+
         self.right_lbl_1 = QtWidgets.QLabel(form)
         self.right_lbl_1.setObjectName("right_lbl_1")
         self.verticalLayout_5.addWidget(self.right_lbl_1)
@@ -97,15 +155,29 @@ class UiForm(object):
         self.right_lbl_4 = QtWidgets.QLabel(form)
         self.right_lbl_4.setObjectName("right_lbl_4")
         self.verticalLayout_5.addWidget(self.right_lbl_4)
+        self.verticalLayout_5.addWidget(self.line5)
         self.right_lbl_5 = QtWidgets.QLabel(form)
         self.right_lbl_5.setObjectName("right_lbl_5")
         self.verticalLayout_5.addWidget(self.right_lbl_5)
         self.right_lbl_6 = QtWidgets.QLabel(form)
         self.right_lbl_6.setObjectName("right_lbl_6")
         self.verticalLayout_5.addWidget(self.right_lbl_6)
+        self.verticalLayout_5.addWidget(self.line6)
+        self.right_lbl_7 = QtWidgets.QLabel(form)
+        self.right_lbl_7.setObjectName("right_lbl_7")
+        self.verticalLayout_5.addWidget(self.right_lbl_7)
+        self.right_lbl_8 = QtWidgets.QLabel(form)
+        self.right_lbl_8.setObjectName("right_lbl_8")
+        self.verticalLayout_5.addWidget(self.right_lbl_8)
+
         self.LCD_Section.addLayout(self.verticalLayout_5)
         self.verticalLayout_4 = QtWidgets.QVBoxLayout()
         self.verticalLayout_4.setObjectName("verticalLayout_4")
+
+        # -#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+        #          R I G H T   L C D s           #
+        # -#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+
         self.right_lcd_1 = QtWidgets.QLCDNumber(form)
         self.right_lcd_1.setObjectName("right_lcd_1")
         self.verticalLayout_4.addWidget(self.right_lcd_1)
@@ -118,12 +190,25 @@ class UiForm(object):
         self.right_lcd_4 = QtWidgets.QLCDNumber(form)
         self.right_lcd_4.setObjectName("right_lcd_4")
         self.verticalLayout_4.addWidget(self.right_lcd_4)
+        self.verticalLayout_4.addWidget(self.line7)
         self.right_lcd_5 = QtWidgets.QLCDNumber(form)
         self.right_lcd_5.setObjectName("right_lcd_5")
         self.verticalLayout_4.addWidget(self.right_lcd_5)
         self.right_lcd_6 = QtWidgets.QLCDNumber(form)
         self.right_lcd_6.setObjectName("right_lcd_6")
         self.verticalLayout_4.addWidget(self.right_lcd_6)
+        self.verticalLayout_4.addWidget(self.line8)
+        self.right_lcd_7 = QtWidgets.QLCDNumber(form)
+        self.right_lcd_7.setObjectName("right_lcd_7")
+        self.verticalLayout_4.addWidget(self.right_lcd_7)
+        self.right_lcd_8 = QtWidgets.QLCDNumber(form)
+        self.right_lcd_8.setObjectName("right_lcd_8")
+        self.verticalLayout_4.addWidget(self.right_lcd_8)
+
+        # -#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+        #               M O D E s                #
+        # -#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+
         self.LCD_Section.addLayout(self.verticalLayout_4)
         self.LCD_Section.setStretch(1, 1)
         self.LCD_Section.setStretch(3, 1)
@@ -177,7 +262,7 @@ class UiForm(object):
         self.my_timer = QtCore.QTimer()
         # noinspection PyUnresolvedReferences
         self.my_timer.timeout.connect(self.display_updater)
-        self.my_timer.start(200)
+        self.my_timer.start(1000)
 
     # noinspection PyArgumentList,PyTypeChecker
     def translate_ui(self, form):
@@ -211,30 +296,55 @@ class UiForm(object):
         self.left_lbl_4.setText(_translate("Form", "Speed"))
         self.left_lbl_5.setText(_translate("Form", "Pitch"))
         self.left_lbl_6.setText(_translate("Form", "Heading"))
+        self.left_lbl_7.setText(_translate("Form", "Stage"))
+        self.left_lbl_8.setText(_translate("Form", "circ_dV"))
         self.right_lbl_1.setText(_translate("Form", "Ap ETA"))
         self.right_lbl_2.setText(_translate("Form", "Pe ETA"))
-        self.right_lbl_3.setText(_translate("Form", "Q"))
+        self.right_lbl_3.setText(_translate("Form", "Delta V"))
         self.right_lbl_4.setText(_translate("Form", "TWR"))
         self.right_lbl_5.setText(_translate("Form", "Set Pitch"))
         self.right_lbl_6.setText(_translate("Form", "Set Heading"))
+        self.right_lbl_7.setText(_translate("Form", "Q"))
+        self.right_lbl_8.setText(_translate("Form", "Pitch Delta"))
 
     def display_updater(self):
         # -#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
         #                 L C D                  #
         # -#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 
-        self.left_lcd_1.display(tel.apoapsis())
-        self.left_lcd_2.display(float(tel.periapsis()))
-        self.left_lcd_3.display(float(tel.alt()))
-        self.left_lcd_4.display(float(tel.vessel_speed()))
-        self.left_lcd_5.display(float(tel.vessel_pitch()))
-        self.left_lcd_6.display(float(tel.heading()))
-        self.right_lcd_1.display(float(tel.ETAap()))
-        self.right_lcd_2.display(float(tar.T_ap_dV / 4.5))
-        self.right_lcd_3.display(tel.Q())
-        self.right_lcd_4.display(Telemetry().twr)
-        self.right_lcd_5.display(gravity_pitch(tar))
-        self.right_lcd_6.display(azimuth_init(tar))
+        if tel.apoapsis() <= 10000:
+            self.left_lcd_1.display(round(tel.apoapsis(), 1))
+        else:
+            self.left_lcd_1.display(round(tel.apoapsis()/1000, 1))
+
+        if tel.periapsis() <= 10000:
+            self.left_lcd_2.display(round(tel.periapsis(), 1))
+        else:
+            self.left_lcd_2.display(round(tel.periapsis()/1000, 1))
+
+        if tel.alt() <= 10000:
+            self.left_lcd_3.display(round(tel.alt(), 1))
+        else:
+            self.left_lcd_3.display(round(tel.alt()/1000, 1))
+
+        self.left_lcd_4.display(round(tel.vessel_speed(), 1))
+        self.left_lcd_5.display(round(tel.vessel_pitch(), 1))
+        self.left_lcd_6.display(round(tel.heading(), 1))
+        self.left_lcd_7.display(round(cur_stage(), 1))
+        self.left_lcd_8.display(round(0, 1))
+        self.right_lcd_1.display(round(tel.ETAap(), 1))
+        self.right_lcd_2.display(round(tel.ETApe(), 1))
+        self.right_lcd_3.display(round(0, 2))
+        self.right_lcd_4.display(round(twr(), 1))
+
+        if tel.vessel_speed() < 2200:
+            self.right_lcd_5.display(round(gravity_pitch(), 2))
+        else:
+            self.right_lcd_5.display(round(-1*ap_v_dv()/5, 2))
+
+        self.right_lcd_6.display(round(azimuth_init() + 90, 2))
+        self.right_lcd_7.display(round(0, 2))
+        self.right_lcd_8.display(round(ap_v_dv(), 2))
 
         self.setMode_label.setText(
             "<html><head/><body><p><span style=\" font-size:12pt; font-weight:600;\">Mode</span></p></body></html>")
