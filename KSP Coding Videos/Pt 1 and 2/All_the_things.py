@@ -46,18 +46,24 @@ def eng_status(spin_solids):
                     return m.get_field("Status")
 
 
-def stage_deltav(_part):
-    for en in engines:
-        if en.name == _part:
-            _prop_used = en.engine.propellants
-            _stage = en.decouple_stage
-            _parts = vessel.parts.in_decouple_stage(_stage)
-            for _p in _parts:
-                if _p.resources.names == _prop_used:
-                    _dry_mass = _p.dry_mass
-                    _wet_mass = _p.mass
-                    _fuel_mass = _wet_mass - _dry_mass
+def get_active_engine():
+    for eng in engines:
+        if eng.engine.active:
+            return eng
 
-                    _ve = en.engine.specific_impulse * 9.8
-                    _delta_v = _ve * math.log(vessel.mass / (vessel.mass - _fuel_mass))
-                    return _delta_v
+
+def stage_deltav():
+    _engine = get_active_engine()
+    _prop_used = _engine.engine.propellants
+    _stage = _engine.decouple_stage
+    _parts = vessel.parts.in_decouple_stage(_stage)
+    _total_fuel_mass = 0
+    for _p in _parts:
+        if _p.resources.names == _prop_used:
+            _dry_mass = _p.dry_mass
+            _wet_mass = _p.mass
+            _total_fuel_mass = _total_fuel_mass + (_wet_mass - _dry_mass)
+
+    _ve = _engine.engine.specific_impulse * 9.8
+    _delta_v = _ve * math.log(vessel.mass / (vessel.mass - _total_fuel_mass))
+    return _delta_v
