@@ -38,18 +38,26 @@ def pitch(_speed):
 
 
 def eng_status(spin_solids):
-    for en in engines:
-        if en.engine.active and (en.name != spin_solids):
-            mod = en.modules
-            for m in mod:
-                if m.name == "ModuleEnginesRF":
-                    return m.get_field("Status")
+    for _en in engines:
+        if _en.engine.active and (_en.name != spin_solids):
+            _mod = _en.modules
+            for _m in _mod:
+                if _m.name == "ModuleEnginesRF":
+                    return _m.get_field("Status")
+
+
+def get_active_engine_list():
+    _active_engines_list = []
+    for _eng in engines:
+        if _eng.engine.active:
+            _active_engines_list.append(_eng)
+    return _active_engines_list
 
 
 def get_active_engine():
-    for eng in engines:
-        if eng.engine.active:
-            return eng
+    for _eng in engines:
+        if _eng.engine.active:
+            return _eng
 
 
 def stage_deltav():
