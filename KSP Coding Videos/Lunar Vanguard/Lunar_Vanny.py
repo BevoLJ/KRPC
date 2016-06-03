@@ -1,6 +1,6 @@
 import time
 from UI_Panel import FlightUI
-from Operation import Operations
+# /todo/ comment program.
 
 
 class FlightControl(FlightUI):
@@ -10,20 +10,22 @@ class FlightControl(FlightUI):
 
     def launch(self):
 
-        mode = "Launch"
+        mode = "Pre-Flight Checks"
         self.ap.engage()
         self.control.throttle = 1
         self.ap.target_pitch_and_heading(90, 90)
-        self.control.activate_next_stage()
         ui = FlightUI()
 
         while mode != "Orbit":
+
+            if mode == "Pre-Flight Checks":
+                mode = self.launch_ui(mode)
+                self.control.activate_next_stage()
 
             if mode == "Launch":
                 if self.twr() > 1:
                     self.ap.target_pitch_and_heading(90, 90)
                     self.control.activate_next_stage()
-                    print(mode)
                     mode = "Booster Stage"
 
             if mode == "Booster Stage":
@@ -32,74 +34,55 @@ class FlightControl(FlightUI):
 
                 if self.eng_status() == "Flame-Out!":
                     self.control.activate_next_stage()
-                    print(mode)
                     mode = "Mid Stage"
 
             if mode == "Mid Stage":
-                self.ap.target_pitch_and_heading(self.pitch(), 90)
+                if self.vessel_speed() < 2200 and (self.apoapsis_altitude() <
+                                                       (self.target_orbit * .92 )):
+                    self.ap.target_pitch_and_heading(self.pitch(), 90)
+                else: self.ap.target_pitch_and_heading(-self.target_apoapsis_speed_dv() / 3, 90)
                 if self.eng_status() == "Flame-Out!":
                     self.control.activate_next_stage()
-                    print(mode)
                     mode = "Upper Stage"
 
             if mode == "Upper Stage":
-                if self.vessel_speed() < 2400: self.ap.target_pitch_and_heading(self.pitch(), 90)
-                else: self.ap.target_pitch_and_heading(5, 90)
-
-                if self.stage_deltav() < 100:
+                if self.vessel_speed() < 2200 and (self.apoapsis_altitude() <
+                                                       (self.target_orbit * .92 )):
+                else: self.ap.target_pitch_and_heading(-self.target_apoapsis_speed_dv() / 3, 90)
+                if self.eng_status() == "Flame-Out!":
+                    self.control.throttle = 0
+                    time.sleep(1.5)
                     self.control.activate_next_stage()
-                    while self.eng_status() != "Flame-Out!": time.sleep(.5)
-                    self.control.activate_next_stage()
-                    while self.eng_status() != "Flame-Out!": time.sleep(.5)
-                    print(mode)
+                    self.control.rcs = True
+                    # self.control.rcs = True
                     mode = "Cruise"
 
             if mode == "Cruise":
-                if self.time_to_burn(self.ut, self.ETA_ap(), self.maneuver_burn_time(self.circ_dv())) < 1:
-                    self.control.activate_next_stage()
-                    print(mode)
+                if self.time_to_burn(self.ETA_ap(), self.maneuver_burn_time(self.circ_dv())) < 2:
                     mode = "Orbital Insertion"
+                    print(self.time_to_burn(self.ETA_ap(), self.maneuver_burn_time(self.circ_dv())))
 
             if mode == "Orbital Insertion":
-                self.ap.target_pitch_and_heading(0, 90)
-                if self.circ_dv() < 1:
-                    print(mode)
+                self.control.rcs = False
+                self.control.throttle = 1
+                self.ap.target_pitch_and_heading(-self.target_apoapsis_speed_dv(), 90)
+                if self.circ_dv() < 30:
                     mode = "Orbit"
 
-            time.sleep(.4)
-            ui.gravity_turn()
+            if self.circ_dv() < 500:
+                time.sleep(.01)
+            else:
+                time.sleep(.2)
 
-    def launch_ui(self):
-        screen_size = self.conn.ui.rect_transform.size
-        panel = self.conn.ui.add_panel()
-        rect = panel.rect_transform
-        rect.size = (200, 50)
-        rect.position = (400 - (screen_size[0] / 2), 100)
+            ui.gravity_turn(mode)
 
-        button = panel.add_button("Launch")
-        button.rect_transform.position = (0, 0)
-
-        button_clicked = self.conn.add_stream(getattr, button, 'clicked')
-
-        while True:
-            if button_clicked():
-                panel.remove()
-                self.launch()
-
-            time.sleep(0.4)
-
-
-def flight_ui_testing():
-    ui = FlightUI()
-    while True:
-        ui.gravity_turn()
-        time.sleep(.4)
+        self.control.throttle = 0
 
 
 def main():
-    # FlightControl().launch()
+    FlightControl().launch()
     # Testing().test()
     # launch_ui()
-    flight_ui_testing()
+    # flight_ui_testing()
 
 main()
