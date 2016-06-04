@@ -8,6 +8,8 @@ class LaunchManager(Operations):
     def __init__(self):
         super().__init__()
 
+        self.lAz_data = self.azimuth_init()
+
         # -#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
         #         S E T   H E A D I N G          #
         # -#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
@@ -17,9 +19,9 @@ class LaunchManager(Operations):
         if self.vessel_speed() < 80:
             self.ap.target_pitch_and_heading(90, 90)
         elif self.vessel_speed() < 2200 or (self.apoapsis_altitude() < (self.target_orbit_alt * .92)):
-            self.ap.target_pitch_and_heading(self.gravity_pitch(), self.azimuth_init())
+            self.ap.target_pitch_and_heading(self.gravity_pitch(), self.azimuth_init2(self.lAz_data))
         else:
-            self.ap.target_pitch_and_heading(self.insertion_pitch() / 3.5, self.azimuth_init())
+            self.ap.target_pitch_and_heading(self.insertion_pitch() / 3.5, self.azimuth_init2(self.lAz_data))
 
     def gravity_pitch(self):
         _t_ap_dv = self.target_apoapsis_speed_dv()
@@ -49,7 +51,6 @@ class LaunchManager(Operations):
 
         return pitch_calcs()
 
-    # /todo/ BROKEN! Need to fix
     def azimuth_init(self):
 
         _R_eq = self.radius_eq
@@ -69,25 +70,30 @@ class LaunchManager(Operations):
         if (180 - numpy.fabs(_lat)) < _inc:
             _inc = (180 - numpy.fabs(_lat))
 
+        velocity_eq = (2 * numpy.pi * _R_eq) / _Rot_p
+        t_orb_v = numpy.sqrt(_µ / (_to + _R_eq))
+
+        return _inc, _lat, velocity_eq, t_orb_v, node
+
+    @staticmethod
+    def azimuth_init2(_lAz_data):
+        _inc = _lAz_data[0]
+        _lat = _lAz_data[1]
+        velocity_eq = _lAz_data[2]
+
         @jit(nopython=True)
-        def Az_calcs():
-            velocity_eq = (2 * numpy.pi * _R_eq) / _Rot_p
-            t_orb_v = numpy.sqrt(_µ / (_to + _R_eq))
+        def _az_calc():
+            inert_az = numpy.arcsin(max(min(numpy.cos(numpy.deg2rad(_inc)) / numpy.cos(numpy.deg2rad(_lat)), 1), -1))
+            _VXRot = _lAz_data[3] * numpy.sin(inert_az) - velocity_eq * numpy.cos(numpy.deg2rad(_lat))
+            _VYRot = _lAz_data[3] * numpy.cos(inert_az)
 
-            inert_az = numpy.arcsin(max(min(numpy.cos(_inc / numpy.cos(_lat)), 1), -1))
-            _VXRot = t_orb_v * numpy.sin(inert_az) - velocity_eq * numpy.cos(_lat)
-            _VYRot = t_orb_v * numpy.cos(inert_az)
+            return numpy.rad2deg(numpy.fmod(numpy.arctan2(_VXRot, _VYRot) + 360, 360))
+        _az = _az_calc()
 
-            return numpy.fmod(numpy.arctan2(_VXRot, _VYRot) + 360, 360)
+        if _lAz_data[4] == "Ascending":
+            return _az
 
-        _az = Az_calcs()
-
-        # This is wrong.  Should return just _az
-        # need to figure out why it always returns 0
-        if node == "Ascending":
-            return _az + 90  # I should not need the +90 here
-
-        if node == "Descending":
+        if _lAz_data[4] == "Descending":
             if _az <= 90:
                 return 180 - _az
             elif _az >= 270:

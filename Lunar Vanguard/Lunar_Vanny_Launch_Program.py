@@ -25,6 +25,7 @@ class FlightControl(FlightUI):
 
             if mode == "Launch":
                 if self.twr() > 1:
+                    self.lAz_data = self.azimuth_init()
                     self.control.activate_next_stage()
                     mode = "Booster Stage"
 
@@ -61,7 +62,7 @@ class FlightControl(FlightUI):
             if self.circ_dv() < 500:
                 time.sleep(.01)
             else:
-                time.sleep(.75)
+                time.sleep(.075)
 
             ui.gravity_turn(mode)
 

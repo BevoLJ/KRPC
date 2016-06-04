@@ -67,7 +67,7 @@ class FlightUI(LaunchManager):
         else: self.text_5.content = 'Ap dV      :  %d m/s' % (self.target_apoapsis_speed_dv() / 5)
 
         if self.Q() < 30:
-            self.text_7.content = 'Azimuth         :  %d' % (self.azimuth_init())
+            self.text_7.content = 'Azimuth         :  %d' % (self.azimuth_init2(self.lAz_data))
         else:
             self.text_7.content = 'Q               :  %d' % (self.Q())
 

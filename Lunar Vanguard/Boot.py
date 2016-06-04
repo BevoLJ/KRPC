@@ -17,7 +17,7 @@ class BootUp:
         # -#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 
         self.target_orbit_alt = 225000
-        self.target_orbit_inc = 28
+        self.target_orbit_inc = 0
 
         self.body = self.vessel.orbit.body
         self.radius_eq = self.vessel.orbit.body.equatorial_radius
