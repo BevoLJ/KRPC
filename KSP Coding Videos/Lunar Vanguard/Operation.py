@@ -173,13 +173,15 @@ class Operations:
     def time_to_burn(_node_eta, _burn_time):
         return _node_eta - (_burn_time / 2)
 
-    def launch_ui(self, mode):
-        _mode = mode
+    def launch_ui(self):
+        _mode = "Pre-Flight Checks"
         _screen_size = self.conn.ui.rect_transform.size
         _panel = self.conn.ui.add_panel()
         _rect = _panel.rect_transform
         _rect.size = (200, 100)
         _rect.position = (400 - (_screen_size[0] / 2), 100)
+        # Testing ui.messages
+        self.conn.ui.message("Launch Mode: " + _mode, 5.0, self.conn.ui.MessagePosition.top_center)
 
         _text_1 = _panel.add_text("Enter Target Orbit in Km")
         _text_1.rect_transform.position = (5, 30)
@@ -200,6 +202,7 @@ class Operations:
                 _button_clicked.clicked = False
             time.sleep(0.4)
 
+        self.control.activate_next_stage()
         _panel.remove()
         return _mode
 

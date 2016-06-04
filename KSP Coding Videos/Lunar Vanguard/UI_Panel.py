@@ -50,6 +50,7 @@ class FlightUI(Operations):
         self.text_9.size = 12
 
     def gravity_turn(self, mode):
+
         self.text_1.content = 'Mode       :  ' + mode
         self.text_2.content = 'Apoapsis  :  %d km' % (self.apoapsis_altitude() / 1000)
         self.text_3.content = 'ETA Ap      :  %d sec' % (self.ETA_ap())
