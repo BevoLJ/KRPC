@@ -1,8 +1,8 @@
 import time
-from Operation import Operations
+from Launch_Manager import LaunchManager
 
 
-class FlightUI(Operations):
+class FlightUI(LaunchManager):
 
     def __init__(self):
         super().__init__()
