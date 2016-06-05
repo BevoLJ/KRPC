@@ -1,4 +1,4 @@
-import numpy
+import numpy as np
 from Operation import Operations
 from numba import jit
 
@@ -16,20 +16,20 @@ class LaunchManager(Operations):
 
     def pitch_and_heading(self):
 
-        if self.vessel_speed() < 80:
+        if self.vessel_sur_speed() < 80:
             self.ap.target_pitch_and_heading(90, 90)
-        elif self.vessel_speed() < 2200 or (self.apoapsis_altitude() < (self.target_orbit_alt * .92)):
+        elif self.vessel_sur_speed() < 2200 or (self.apoapsis_altitude() < (self.target_orbit_alt * .92)):
             self.ap.target_pitch_and_heading(self.gravity_pitch(), self.azimuth_init2(self.lAz_data))
         else:
             self.ap.target_pitch_and_heading(self.insertion_pitch() / 3.5, self.azimuth_init2(self.lAz_data))
 
     def gravity_pitch(self):
         _t_ap_dv = self.target_apoapsis_speed_dv()
-        _speed = self.vessel_speed()
+        _speed = self.vessel_sur_speed()
 
         @jit(nopython=True)
         def pitch_calcs():
-            _pitch = (90 - (1.22 * numpy.sqrt(_speed))) + (_t_ap_dv / 6)
+            _pitch = (90 - (1.22 * np.sqrt(_speed))) + (_t_ap_dv / 6)
             return _pitch
         return pitch_calcs()
 
@@ -58,20 +58,20 @@ class LaunchManager(Operations):
         _lat = self.latitude()
         _to = float(self.target_orbit_alt)
         _µ = self.gravitational_parameter
-        _Rot_p = self.rotational_period()
+        _Rot_p = self.rotational_period
         node = "Ascending"
 
         if _inc < 0:
             node = "Descending"
-            _inc = numpy.fabs(_inc)
+            _inc = np.fabs(_inc)
 
-        if (numpy.fabs(_lat)) > _inc:
-            _inc = numpy.fabs(_lat)
-        if (180 - numpy.fabs(_lat)) < _inc:
-            _inc = (180 - numpy.fabs(_lat))
+        if (np.fabs(_lat)) > _inc:
+            _inc = np.fabs(_lat)
+        if (180 - np.fabs(_lat)) < _inc:
+            _inc = (180 - np.fabs(_lat))
 
-        velocity_eq = (2 * numpy.pi * _R_eq) / _Rot_p
-        t_orb_v = numpy.sqrt(_µ / (_to + _R_eq))
+        velocity_eq = (2 * np.pi * _R_eq) / _Rot_p
+        t_orb_v = np.sqrt(_µ / (_to + _R_eq))
 
         return _inc, _lat, velocity_eq, t_orb_v, node
 
@@ -83,11 +83,11 @@ class LaunchManager(Operations):
 
         @jit(nopython=True)
         def _az_calc():
-            inert_az = numpy.arcsin(max(min(numpy.cos(numpy.deg2rad(_inc)) / numpy.cos(numpy.deg2rad(_lat)), 1), -1))
-            _VXRot = _lAz_data[3] * numpy.sin(inert_az) - velocity_eq * numpy.cos(numpy.deg2rad(_lat))
-            _VYRot = _lAz_data[3] * numpy.cos(inert_az)
+            inert_az = np.arcsin(max(min(np.cos(np.deg2rad(_inc)) / np.cos(np.deg2rad(_lat)), 1), -1))
+            _VXRot = _lAz_data[3] * np.sin(inert_az) - velocity_eq * np.cos(np.deg2rad(_lat))
+            _VYRot = _lAz_data[3] * np.cos(inert_az)
 
-            return numpy.rad2deg(numpy.fmod(numpy.arctan2(_VXRot, _VYRot) + 360, 360))
+            return np.rad2deg(np.fmod(np.arctan2(_VXRot, _VYRot) + 360, 360))
         _az = _az_calc()
 
         if _lAz_data[4] == "Ascending":

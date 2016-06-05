@@ -19,6 +19,8 @@ class FlightControl(FlightUI):
         self.control.throttle = 1
         mode = self.launch_ui()
         ui = FlightUI()
+        _ecc = self.eccentricity()
+        _ecc_new = _ecc
 
         while mode != "Orbit":
             self.pitch_and_heading()
@@ -33,11 +35,13 @@ class FlightControl(FlightUI):
 
                 if self.eng_status() == "Flame-Out!":
                     self.control.activate_next_stage()
+                    time.sleep(1.5)
                     mode = "Mid Stage"
 
             if mode == "Mid Stage":
                 if self.eng_status() == "Flame-Out!":
                     self.control.activate_next_stage()
+                    time.sleep(1.5)
                     mode = "Upper Stage"
 
             if mode == "Upper Stage":
@@ -46,7 +50,6 @@ class FlightControl(FlightUI):
                     time.sleep(1.5)
                     self.control.activate_next_stage()
                     self.control.rcs = True
-                    # self.control.rcs = True
                     mode = "Cruise"
 
             if mode == "Cruise":
@@ -56,8 +59,9 @@ class FlightControl(FlightUI):
             if mode == "Orbital Insertion":
                 self.control.rcs = False
                 self.control.throttle = 1
-                if self.circ_dv() < 50:
+                if self.circ_dv() < 50 or _ecc > _ecc_new:
                     mode = "Orbit"
+                _ecc_new = _ecc
 
             if self.circ_dv() < 500:
                 time.sleep(.01)

@@ -1,4 +1,4 @@
-import numpy
+import numpy as np
 from Engine_Manager import EngineManager
 from numba import jit
 
@@ -42,7 +42,7 @@ class Operations(EngineManager):
         @jit(nopython=True)
         def dv_calcs():
             _ve = _isp * 9.8
-            _dv = _ve * numpy.log(_mass / (_mass - _total_fuel_mass))
+            _dv = _ve * np.log(_mass / (_mass - _total_fuel_mass))
             return _dv
 
         return dv_calcs()
@@ -54,7 +54,7 @@ class Operations(EngineManager):
 
         @jit(nopython=True)
         def ap_dv_calc():
-            _v_ap = numpy.sqrt((2 * _µ * _R_pe) / (_R_ap * (_R_ap + _R_pe)))
+            _v_ap = np.sqrt((2 * _µ * _R_pe) / (_R_ap * (_R_ap + _R_pe)))
             return _v_ap
 
         return ap_dv_calc()
@@ -69,7 +69,7 @@ class Operations(EngineManager):
         @jit(nopython=True)
         def ap_dv_calc():
             _t_radius = _to + _R_eq
-            _t_ap_v = numpy.sqrt((2 * _µ * _R_pe) / (_t_radius * (_t_radius + _R_pe)))
+            _t_ap_v = np.sqrt((2 * _µ * _R_pe) / (_t_radius * (_t_radius + _R_pe)))
             _t_ap_dv = _v_ap - _t_ap_v
             return _t_ap_dv
 
@@ -81,7 +81,7 @@ class Operations(EngineManager):
 
         @jit(nopython=True)
         def circular_speed_calc():
-            _circ_v = numpy.sqrt(_µ / _R_ap)
+            _circ_v = np.sqrt(_µ / _R_ap)
             return _circ_v
 
         return circular_speed_calc()
@@ -109,7 +109,7 @@ class Operations(EngineManager):
         @jit(nopython=True)
         def burn_time_calc():
             _mdot = _thrust / 9.82 / _isp
-            _burn_time = _mass * (1 - numpy.e ** (-_dv / _isp / 9.82)) / _mdot
+            _burn_time = _mass * (1 - np.e ** (-_dv / _isp / 9.82)) / _mdot
             return _burn_time
 
         return burn_time_calc()
@@ -118,3 +118,12 @@ class Operations(EngineManager):
     @jit(nopython=True)
     def time_to_burn(_node_eta, _burn_time):
         return _node_eta - (_burn_time / 2)
+
+    @staticmethod
+    @jit(nopython=True)
+    def true_anomaly(_ec, _E):
+
+        fak = np.sqrt(1.0 - _ec * _ec)
+        phi = np.arctan2(fak * np.sin(_E), np.cos(_E) - _ec) / (np.pi / 180.0)
+
+        return np.round(phi, 2)
