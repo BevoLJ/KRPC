@@ -2,10 +2,20 @@ import time
 from Launch_Manager import LaunchManager
 
 
-class FlightUI(LaunchManager):
+class LaunchUI(LaunchManager):
 
     def __init__(self):
         super().__init__()
+
+        self.LAN = self.conn.add_stream(getattr, self.vessel.orbit, 'longitude_of_ascending_node')
+
+        # S E C O N D A R Y   O R B I T A L   E L E M E N T S
+
+        self.apoapsis_altitude = self.conn.add_stream(getattr, self.vessel.orbit, 'apoapsis_altitude')
+        self.periapsis_altitude = self.conn.add_stream(getattr, self.vessel.orbit, 'periapsis_altitude')
+        self.apoapsis_radius = self.conn.add_stream(getattr, self.vessel.orbit, 'apoapsis')
+        self.periapsis_radius = self.conn.add_stream(getattr, self.vessel.orbit, 'periapsis')
+        self.ETA_ap = self.conn.add_stream(getattr, self.vessel.orbit, 'time_to_apoapsis')
 
         _screen_size = self.conn.ui.rect_transform.size
         _panel_flight = self.conn.ui.add_panel()
@@ -72,7 +82,7 @@ class FlightUI(LaunchManager):
         else: self.text_5.content = 'Ap dV      :  %d m/s' % (self.target_apoapsis_speed_dv() / 5)
 
         if self.Q() < 30:
-            self.text_7.content = 'Azimuth         :  %d' % (self.azimuth_init2(self.lAz_data))
+            self.text_7.content = 'Azimuth         :  %d' % (self.azimuth(self.lAz_data))
         else:
             self.text_7.content = 'Q               :  %d' % (self.Q())
 

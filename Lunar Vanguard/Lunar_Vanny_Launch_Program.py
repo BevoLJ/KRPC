@@ -1,13 +1,15 @@
 import time
-from UI_Panel import FlightUI
+from Launch_UI import LaunchUI
 
 
 # /todo/ comment program.
 
 
-class FlightControl(FlightUI):
+class LaunchControl(LaunchUI):
     def __init__(self):
         super().__init__()
+
+        self.eccentricity = self.conn.add_stream(getattr, self.vessel.orbit, 'eccentricity')
 
     def launch(self):
             # -#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
@@ -18,7 +20,7 @@ class FlightControl(FlightUI):
         self.ap.engage()
         self.control.throttle = 1
         mode = self.launch_ui()
-        ui = FlightUI()
+        ui = LaunchUI()
         _ecc = self.eccentricity()
         _ecc_new = _ecc
 
@@ -26,7 +28,8 @@ class FlightControl(FlightUI):
             self.pitch_and_heading()
 
             if mode == "Launch":
-                if self.twr() > 1:
+                _twr = self.twr_calc(self.thrust(), self.mass(), self.altitude(), self.radius_eq, self.mu)
+                if _twr > 1:
                     self.lAz_data = self.azimuth_init()
                     self.control.activate_next_stage()
                     mode = "Booster Stage"
@@ -59,7 +62,7 @@ class FlightControl(FlightUI):
             if mode == "Orbital Insertion":
                 self.control.rcs = False
                 self.control.throttle = 1
-                if self.circ_dv() < 50 or _ecc > _ecc_new:
+                if self.circ_dv() < 15 or _ecc > _ecc_new:
                     mode = "Orbit"
                 _ecc_new = _ecc
 
@@ -82,8 +85,8 @@ class FlightControl(FlightUI):
 
 
 def main():
-    FlightControl().launch()
-    # FlightControl().lunar_xfer()
+    LaunchControl().launch()
+    # LaunchControl().lunar_xfer()
     # Testing().test()
     # launch_ui()
     # flight_ui_testing()
