@@ -1,5 +1,6 @@
 import krpc
 import numpy as np
+from scipy.constants import g
 from numba import jit
 
 
@@ -12,8 +13,11 @@ class Operations:
     def __init__(self):
         super().__init__()
 
-        self.target_orbit_alt = 0
-        self.target_orbit_inc = 0
+        self.ap = self.vessel.auto_pilot
+        self.control = self.vessel.control
+
+        self.target_orbit_alt = 250000
+        self.target_orbit_inc = 5
 
         self.ut = self.conn.add_stream(getattr, self.conn.space_center, "ut")
 
@@ -30,7 +34,6 @@ class Operations:
         self.max_thrust = self.conn.add_stream(getattr, self.vessel, 'max_thrust')
         self.specific_impulse = self.conn.add_stream(getattr, self.vessel, 'vacuum_specific_impulse')
         self.mass = self.conn.add_stream(getattr, self.vessel, 'mass')
-        self.altitude = self.conn.add_stream(getattr, self.vessel.flight(), 'mean_altitude')
 
         # -#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
         #           V E L O C I T Y              #
@@ -53,10 +56,27 @@ class Operations:
 
         return self.dv(_isp, self.mass(), _fuel_mass)
 
+    def maneuver_burn_time(self, _maneuver_dv):
+        _isp = max(self.specific_impulse(), 1)
+        _thrust = max(1, self.max_thrust() * 1000)
+        _mass = self.mass() * 1000
+
+        return self.burn_time_calc(_isp, _thrust, _mass, _maneuver_dv)
+
+    def get_active_engine(self):
+        for _eng in self.engines:
+            if _eng.engine.active: return _eng
+
+    def eng_status(self):
+        _mod = self.get_active_engine().modules
+        for _m in _mod:
+            if _m.name == "ModuleEnginesRF":
+                return _m.get_field("Status")
+
     @staticmethod
     @jit(nopython=True)
     def dv(_isp, _mass_full, _fuel_mass):
-        _dv = _isp * 9.8 * np.log(_mass_full / (_mass_full - _fuel_mass))
+        _dv = _isp * g * np.log(_mass_full / (_mass_full - _fuel_mass))
         return _dv
 
     @staticmethod
@@ -65,25 +85,14 @@ class Operations:
         _circ_v = np.sqrt(_mu / _R_ap)
         return _circ_v
 
-    def maneuver_burn_time(self, _maneuver_dv):
-        _isp = max(self.specific_impulse(), 1)
-        _thrust = max(1, self.max_thrust() * 1000)
-        _mass = self.mass() * 1000
-
-        return self.burn_time_calc(_isp, _thrust, _mass, _maneuver_dv)
-
     @staticmethod
     @jit(nopython=True)
     def burn_time_calc(_isp, _thrust, _mass, _dv):
-        _mdot = _thrust / 9.82 / _isp
-        _burn_time = _mass * (1 - np.e ** (-_dv / _isp / 9.82)) / _mdot
+        _mdot = _thrust / g / _isp
+        _burn_time = _mass * (1 - np.e ** (-_dv / _isp / g)) / _mdot
         return _burn_time
 
     @staticmethod
     @jit(nopython=True)
     def time_to_burn(_node_eta, _burn_time):
         return _node_eta - (_burn_time / 2)
-
-    def get_active_engine(self):
-        for _eng in self.engines:
-            if _eng.engine.active: return _eng

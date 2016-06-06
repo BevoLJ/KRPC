@@ -8,13 +8,6 @@ class LaunchUI(LaunchManager):
         super().__init__()
 
         self.LAN = self.conn.add_stream(getattr, self.vessel.orbit, 'longitude_of_ascending_node')
-
-        # S E C O N D A R Y   O R B I T A L   E L E M E N T S
-
-        self.apoapsis_altitude = self.conn.add_stream(getattr, self.vessel.orbit, 'apoapsis_altitude')
-        self.periapsis_altitude = self.conn.add_stream(getattr, self.vessel.orbit, 'periapsis_altitude')
-        self.apoapsis_radius = self.conn.add_stream(getattr, self.vessel.orbit, 'apoapsis')
-        self.periapsis_radius = self.conn.add_stream(getattr, self.vessel.orbit, 'periapsis')
         self.ETA_ap = self.conn.add_stream(getattr, self.vessel.orbit, 'time_to_apoapsis')
 
         _screen_size = self.conn.ui.rect_transform.size
@@ -70,21 +63,17 @@ class LaunchUI(LaunchManager):
         self.text_2.content = 'Apoapsis  :  %d km' % (self.apoapsis_altitude() / 1000)
         self.text_3.content = 'ETA Ap      :  %d sec' % (self.ETA_ap())
         self.text_4.content = 'Periapsis    :  %d km' % (self.periapsis_altitude() / 1000)
-        self.text_6.content = 'Circ dV    :  %d m/s' % (self.circ_dv())
+        self.text_6.content = 'Circ dV      :  %d m/s' % (self.circ_dv())
+        self.text_7.content = 'Azimuth       :  %d' % (self.azimuth(self.lAz_data))
         self.text_8.content = 'Stage dV   :  %d m/s' % (self.stage_dv())
-        self.text_9.content = 'Burn Time    :  %d sec' % (self.maneuver_burn_time(self.circ_dv()))
-        self.text_10.content = 'LAN        :  %d sec' % (self.maneuver_burn_time(self.LAN()))
+        self.text_9.content = 'Burn Time   :  %d sec' % (self.maneuver_burn_time(self.circ_dv()))
+        self.text_10.content = 'LAN          :  %d deg' % (self.maneuver_burn_time(self.LAN()))
 
         if mode == "Mid Stage" or "Upper Stage":
-            self.text_5.content = 'Ap dV      :  %d m/s' % (self.target_apoapsis_speed_dv() / 3)
+            self.text_5.content = 'Ap dV        :  %d m/s' % (self.target_apoapsis_speed_dv() / 3)
         elif mode == "Orbital Insertion":
-            self.text_5.content = 'Ap dV      :  %d m/s' % (self.target_apoapsis_speed_dv())
-        else: self.text_5.content = 'Ap dV      :  %d m/s' % (self.target_apoapsis_speed_dv() / 5)
-
-        if self.Q() < 30:
-            self.text_7.content = 'Azimuth         :  %d' % (self.azimuth(self.lAz_data))
-        else:
-            self.text_7.content = 'Q               :  %d' % (self.Q())
+            self.text_5.content = 'Ap dV        :  %d m/s' % (self.target_apoapsis_speed_dv())
+        else: self.text_5.content = 'Ap dV        :  %d m/s' % (self.target_apoapsis_speed_dv() / 5)
 
     def launch_ui(self):
         _mode = "Pre-Flight Checks"
@@ -115,8 +104,8 @@ class LaunchUI(LaunchManager):
 
         while _mode == "Pre-Flight Checks":
             if _button_clicked():
-                self.target_orbit_inc = (float(_target_orbit_inc.value))
-                self.target_orbit_alt = (float(_target_orbit_alt.value) * 1000)
+                # self.target_orbit_inc = (float(_target_orbit_inc.value))
+                # self.target_orbit_alt = (float(_target_orbit_alt.value) * 1000)
                 _mode = "Launch"
                 _button_clicked.clicked = False
             time.sleep(0.4)

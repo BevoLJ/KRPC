@@ -2,14 +2,11 @@ import time
 from Launch_UI import LaunchUI
 
 
-# /todo/ comment program.
-
-
 class LaunchControl(LaunchUI):
     def __init__(self):
         super().__init__()
 
-        self.eccentricity = self.conn.add_stream(getattr, self.vessel.orbit, 'eccentricity')
+        self.mode = self.launch_ui()
 
     def launch(self):
             # -#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
@@ -19,77 +16,49 @@ class LaunchControl(LaunchUI):
 
         self.ap.engage()
         self.control.throttle = 1
-        mode = self.launch_ui()
+        print("for Moon Shot launch at LAN = 353.55846")
         ui = LaunchUI()
-        _ecc = self.eccentricity()
-        _ecc_new = _ecc
 
-        while mode != "Orbit":
+        while self.mode != "Orbit":
             self.pitch_and_heading()
 
-            if mode == "Launch":
+            if self.mode == "Launch":
                 _twr = self.twr_calc(self.thrust(), self.mass(), self.altitude(), self.radius_eq, self.mu)
                 if _twr > 1:
                     self.lAz_data = self.azimuth_init()
                     self.control.activate_next_stage()
-                    mode = "Booster Stage"
+                    self.mode = "Booster Stage"
 
-            if mode == "Booster Stage":
+            if self.mode == "Booster Stage": self.flameout("Mid Stage")
 
-                if self.eng_status() == "Flame-Out!":
-                    self.control.activate_next_stage()
-                    time.sleep(1.5)
-                    mode = "Mid Stage"
+            if self.mode == "Mid Stage": self.flameout("Upper Stage")
 
-            if mode == "Mid Stage":
-                if self.eng_status() == "Flame-Out!":
-                    self.control.activate_next_stage()
-                    time.sleep(1.5)
-                    mode = "Upper Stage"
-
-            if mode == "Upper Stage":
+            if self.mode == "Upper Stage":
                 if self.eng_status() == "Flame-Out!":
                     self.control.throttle = 0
                     time.sleep(1.5)
                     self.control.activate_next_stage()
                     self.control.rcs = True
-                    mode = "Cruise"
+                    self.mode = "Cruise"
 
-            if mode == "Cruise":
-                if self.time_to_burn(self.ETA_ap(), self.maneuver_burn_time(self.circ_dv())) < 2:
-                    mode = "Orbital Insertion"
+            if self.mode == "Cruise":
+                if self.time_to_burn(self.ETA_ap(), self.maneuver_burn_time(self.circ_dv())) < 5:
+                    self.mode = "Insertion"
 
-            if mode == "Orbital Insertion":
+            if self.mode == "Insertion":
                 self.control.rcs = False
                 self.control.throttle = 1
-                if self.circ_dv() < 15 or _ecc > _ecc_new:
-                    mode = "Orbit"
-                _ecc_new = _ecc
+                if (self.circ_dv() < 30) or (self.orbital_period(250000 + self.radius_eq, self.mu) < self.period()):
+                    self.control.throttle = 0
+                    self.mode = "Orbit"
 
-            if self.circ_dv() < 500:
-                time.sleep(.01)
-            else:
-                time.sleep(.075)
+            if self.circ_dv() > 500:
+                time.sleep(.1)
 
-            ui.gravity_turn(mode)
-
-        self.control.throttle = 0
-
-    def lunar_xfer(self):
-            # -#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
-            #            T R A N S F E R             #
-            #             P R O G R A M              #
-            # -#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
-
-        self.control.throttle = 0
+            ui.gravity_turn(self.mode)
 
 
 def main():
     LaunchControl().launch()
-    # LaunchControl().lunar_xfer()
-    # Testing().test()
-    # launch_ui()
-    # flight_ui_testing()
-
 
 main()

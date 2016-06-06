@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.constants import pi
 from Operation import Operations
 from numba import jit
 
@@ -6,9 +7,6 @@ from numba import jit
 class OrbitManager(Operations):
     def __init__(self):
         super().__init__()
-
-        self.Earth = self.KSC.bodies['Earth']
-        self.Moon = self.KSC.bodies['Moon']
 
         # P R I M A R Y   O R B I T A L   E L E M E N T S
 
@@ -24,9 +22,15 @@ class OrbitManager(Operations):
         self.ETA_ap = self.conn.add_stream(getattr, self.vessel.orbit, 'time_to_apoapsis')
         self.mean_anomaly = self.conn.add_stream(getattr, self.vessel.orbit, 'mean_anomaly')
         self.eccentric_anomaly = self.conn.add_stream(getattr, self.vessel.orbit, 'eccentric_anomaly')
-        self.period = self.conn.add_stream(getattr, self.vessel.orbit, 'period')
         self.speed = self.conn.add_stream(getattr, self.vessel.orbit, 'speed')
-        self.true_anomaly = self.true_anomaly(self.eccentricity, self.eccentric_anomaly)
+        self.vessel_true_anomaly = self.true_anomaly(self.eccentricity(), self.eccentric_anomaly())
+        self.vessel_longitude_of_pe = self.longitude_of_pe(self.LAN(), self.argument_of_periapsis())
+
+        self.altitude = self.conn.add_stream(getattr, self.vessel.flight(), 'mean_altitude')
+        self.period = self.conn.add_stream(getattr, self.vessel.orbit, 'period')
+
+        self.mean_anomaly_at_epoch = self.conn.add_stream(getattr, self.vessel.orbit, 'mean_anomaly_at_epoch')
+        self.epoch = self.conn.add_stream(getattr, self.vessel.orbit, 'epoch')
 
         # V E S S E L   I N F O
 
@@ -40,7 +44,7 @@ class OrbitManager(Operations):
     @jit(nopython=True)
     def true_anomaly(_ec, _E):
         fak = np.sqrt(1.0 - _ec * _ec)
-        phi = np.arctan2(fak * np.sin(_E), np.cos(_E) - _ec) / (np.pi / 180.0)
+        phi = np.arctan2(fak * np.sin(_E), np.cos(_E) - _ec) / (pi / 180.0)
 
         return np.round(phi, 2)
 
