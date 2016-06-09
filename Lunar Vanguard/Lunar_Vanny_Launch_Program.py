@@ -1,5 +1,6 @@
 import time
 from Launch_UI import LaunchUI
+from Transfer_UI import TransferUI
 
 
 class LaunchControl(LaunchUI):
@@ -16,7 +17,6 @@ class LaunchControl(LaunchUI):
 
         self.ap.engage()
         self.control.throttle = 1
-        print("for Moon Shot launch at LAN = 353.55846")
         ui = LaunchUI()
 
         while self.mode != "Orbit":
@@ -57,8 +57,31 @@ class LaunchControl(LaunchUI):
 
             ui.gravity_turn(self.mode)
 
+        self.control.rcs = True
+        self.ap.disengage()
+        self.control.sas = True
+        time.sleep(2)
+
+
+class LunarTransfer(TransferUI):
+    def __init__(self):
+        super().__init__()
+
+    def transfer(self):
+            # -#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+            #               L U N A R                #
+            #            T R A N S F E R             #
+            # -#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+
+        # self.ap.engage()
+        # ui = TransferUI()
+
+        while self.mode != "XFer":
+            print("To The Moon!")
+
 
 def main():
     LaunchControl().launch()
+    LunarTransfer().transfer()
 
 main()

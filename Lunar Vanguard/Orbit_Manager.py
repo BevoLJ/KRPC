@@ -53,3 +53,11 @@ class OrbitManager(Operations):
     def longitude_of_pe(_LAN, _arg_pe):
         _long_pe = _LAN + _arg_pe
         return _long_pe
+
+
+    @staticmethod
+    @jit(nopython=True)
+    def rad_two_pi(a):
+        a %= 2 * np.pi
+        if a < 0: return a + 2 * np.pi
+        else: return a

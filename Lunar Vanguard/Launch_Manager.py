@@ -19,6 +19,8 @@ class LaunchManager(Operations):
         self.periapsis_radius = self.conn.add_stream(getattr, self.vessel.orbit, 'periapsis')
 
         self.lAz_data = self.azimuth_init()
+        self.Q = self.conn.add_stream(getattr, self.vessel.flight(), 'dynamic_pressure')
+        self.mean_anomaly = self.conn.add_stream(getattr, self.vessel.orbit, 'mean_anomaly')
 
         self.altitude = self.conn.add_stream(getattr, self.vessel.flight(), 'mean_altitude')
         self.period = self.conn.add_stream(getattr, self.vessel.orbit, 'period')
@@ -33,7 +35,7 @@ class LaunchManager(Operations):
         elif self.vessel_sur_speed() < 2200 or (self.apoapsis_altitude() < (self.target_orbit_alt * .92)):
             self.ap.target_pitch_and_heading(self.gravity_pitch(), self.azimuth(self.lAz_data))
         else:
-            self.ap.target_pitch_and_heading(self.insertion_pitch() / 3.5, self.azimuth(self.lAz_data))
+            self.ap.target_pitch_and_heading(self.insertion_pitch(), self.azimuth(self.lAz_data))
 
     def gravity_pitch(self):
         _t_ap_dv = self.target_apoapsis_speed_dv()
@@ -41,21 +43,19 @@ class LaunchManager(Operations):
 
         @jit(nopython=True)
         def pitch_calcs():
-            _pitch = (85 - (1.2 * np.sqrt(_speed))) + (_t_ap_dv / 6)
+            _pitch = (85 - (1.45 * np.sqrt(_speed))) + (_t_ap_dv / 2)
             return _pitch
         return pitch_calcs()
 
     def insertion_pitch(self):
         _circ_dv = self.circ_dv()
         _t_ap_dv = self.target_apoapsis_speed_dv()
+        _m = np.rad2deg(self.mean_anomaly())
+        _burn_time = self.maneuver_burn_time(self.circ_dv())
 
         @jit(nopython=True)
         def pitch_calcs():
-            if _circ_dv > 1000: return _t_ap_dv
-            else:
-                if _t_ap_dv >= 0: return min(_t_ap_dv / 3, 10)
-                else: return max(_t_ap_dv / 3, -10)
-
+                return (_t_ap_dv * (_circ_dv / 1000)) + (_m - (180 - (_burn_time / 12)))
         return pitch_calcs()
 
     def azimuth_init(self):

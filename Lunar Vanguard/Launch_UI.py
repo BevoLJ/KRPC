@@ -60,20 +60,14 @@ class LaunchUI(LaunchManager):
     def gravity_turn(self, mode):
 
         self.text_1.content = 'Mode       :  ' + mode
-        self.text_2.content = 'Apoapsis  :  %d km' % (self.apoapsis_altitude() / 1000)
+        self.text_2.content = 'Apoapsis   :  %d km' % (self.apoapsis_altitude() / 1000)
         self.text_3.content = 'ETA Ap      :  %d sec' % (self.ETA_ap())
-        self.text_4.content = 'Periapsis    :  %d km' % (self.periapsis_altitude() / 1000)
-        self.text_6.content = 'Circ dV      :  %d m/s' % (self.circ_dv())
-        self.text_7.content = 'Azimuth       :  %d' % (self.azimuth(self.lAz_data))
-        self.text_8.content = 'Stage dV   :  %d m/s' % (self.stage_dv())
-        self.text_9.content = 'Burn Time   :  %d sec' % (self.maneuver_burn_time(self.circ_dv()))
-        self.text_10.content = 'LAN          :  %d deg' % (self.maneuver_burn_time(self.LAN()))
-
-        if mode == "Mid Stage" or "Upper Stage":
-            self.text_5.content = 'Ap dV        :  %d m/s' % (self.target_apoapsis_speed_dv() / 3)
-        elif mode == "Orbital Insertion":
-            self.text_5.content = 'Ap dV        :  %d m/s' % (self.target_apoapsis_speed_dv())
-        else: self.text_5.content = 'Ap dV        :  %d m/s' % (self.target_apoapsis_speed_dv() / 5)
+        self.text_4.content = 'Periapsis   :  %d km' % (self.periapsis_altitude() / 1000)
+        self.text_5.content = 'Q              :  %d kPa' % (self.Q())
+        self.text_6.content = 'Azimuth     :  %d' % (self.azimuth(self.lAz_data))
+        self.text_7.content = 'Ap dV        :  %d m/s' % (self.target_apoapsis_speed_dv())
+        self.text_8.content = 'Circ dV      :  %d m/s' % (self.circ_dv())
+        self.text_9.content = 'Circ Burn Time:  %d sec' % (self.maneuver_burn_time(self.circ_dv()))
 
     def launch_ui(self):
         _mode = "Pre-Flight Checks"

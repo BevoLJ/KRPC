@@ -1,11 +1,20 @@
-# from Lunar_XFer_Manager import LunarXFerManager
-from Launch_Manager import LaunchManager
+from Lunar_XFer_Manager import LunarXFerManager
+from scipy.constants import pi
+# from Launch_Manager import LaunchManager
 # from numba import jit
 # import time
 import numpy as np
+from numba import jit
 
 
-class Testing(LaunchManager):
+
+
+
+
+
+
+
+class Testing(LunarXFerManager):
 
     def __init__(self):
         super().__init__()
@@ -16,7 +25,48 @@ class Testing(LaunchManager):
 
         # self.moon_info()
 
-        self.test()
+        self.moon_info()
+        print(" ")
+        print("____M A T C H  C U R R E N T  M E A N_____")
+        print(" ")
+        print("UT:                 " + str(round(self.ut(), 2)))
+        print(" ")
+        print("My Mean Calc:        " + str(self.mean_at_ut()))
+        print("Actual mean_anomaly: " + str(round(np.rad2deg(self.moon_mean_anomaly()), 2)))
+        print(" ")
+
+    def mean_at_ut(self):
+
+        _o_period = self.moon.period
+        _ecc = self.moon.eccentricity
+        _ut = self.ut()
+        _epoch = self.moon.epoch
+        _epoch_mean = self.moon.mean_anomaly_at_epoch
+
+        @jit(nopython=True)
+        def _calcs():
+
+            _motion = 2 * pi / _o_period
+            _m_a_ut = (_epoch_mean + (_ut - _epoch)) * _motion
+
+            return _m_a_ut
+
+        if _ecc > 1:
+            return self.rad_two_pi(_calcs())
+        return _calcs()
+
+    @staticmethod
+    @jit(nopython=True)
+    def rad_two_pi(a):
+        a %= 2 * np.pi
+        if a < 0: return a + 2 * np.pi
+        else: return a
+
+
+
+
+
+
 
     def test(self):
         print(self.stage_dv())
