@@ -20,7 +20,6 @@ class OrbitManager(Operations):
         # S E C O N D A R Y   O R B I T A L   E L E M E N T S
 
         self.ETA_ap = self.conn.add_stream(getattr, self.vessel.orbit, 'time_to_apoapsis')
-        self.mean_anomaly = self.conn.add_stream(getattr, self.vessel.orbit, 'mean_anomaly')
         self.eccentric_anomaly = self.conn.add_stream(getattr, self.vessel.orbit, 'eccentric_anomaly')
         self.speed = self.conn.add_stream(getattr, self.vessel.orbit, 'speed')
         self.vessel_true_anomaly = self.true_anomaly(self.eccentricity(), self.eccentric_anomaly())
@@ -34,19 +33,39 @@ class OrbitManager(Operations):
 
         # V E S S E L   I N F O
 
-        self.orb_reference_frame = self.conn.add_stream(getattr, self.vessel, 'orbital_reference_frame')
+        self.orb_reference_frame = self.conn.add_stream(getattr, self.vessel.orbit.body, 'orbital_reference_frame')
         self.vessel_orbit_direction = self.conn.add_stream(self.vessel.direction, self.orb_reference_frame())
+        self.vessel_velocity_direction = self.conn.add_stream(self.vessel.velocity, self.orb_reference_frame())
         self.bdy__non_rot_reference_frame = self.conn.add_stream(getattr, self.body, 'non_rotating_reference_frame')
         self.vessel_flight_bdy_non_rot = self.conn.add_stream(self.vessel.flight, self.bdy__non_rot_reference_frame())
         self.vessel_orb_speed = self.conn.add_stream(getattr, self.vessel_flight_bdy_non_rot(), 'speed')
+
+    # def rcs_prograde(self):
+
+    def angle_of_attack(self):
+        _d = self.vessel_orbit_direction()
+        _v = self.vessel_velocity_direction()
+
+        _dp = _d[0] * _v[0] + _d[1] * _v[1] + _d[2] * _v[2]
+        _vmag = np.sqrt(_v[0] ** 2 + _v[1] ** 2 + _v[2] ** 2)
+
+        if _dp == 0:
+            _angle = 0
+        else:
+            _angle = abs(np.arccos(_dp / _vmag) * (180. / np.pi))
+
+        return _angle
+
+    @staticmethod
+    @jit(nopython=True)
+    def ecc_to_mean_anomaly(_ec, _E):
+        return _E - (_ec * np.sin(_E))
 
     @staticmethod
     @jit(nopython=True)
     def true_anomaly(_ec, _E):
         fak = np.sqrt(1.0 - _ec * _ec)
-        phi = np.arctan2(fak * np.sin(_E), np.cos(_E) - _ec) / (pi / 180.0)
-
-        return np.round(phi, 2)
+        return np.arctan2(fak * np.sin(_E), np.cos(_E) - _ec) / (pi / 180.0)
 
     @staticmethod
     @jit(nopython=True)
@@ -54,10 +73,31 @@ class OrbitManager(Operations):
         _long_pe = _LAN + _arg_pe
         return _long_pe
 
-
     @staticmethod
     @jit(nopython=True)
     def rad_two_pi(a):
         a %= 2 * np.pi
         if a < 0: return a + 2 * np.pi
         else: return a
+
+    @staticmethod
+    @jit(nopython=True)
+    def mean_motion(_mu, _orbit_radius):
+        return np.sqrt(_mu / (_orbit_radius * _orbit_radius * _orbit_radius))
+
+    @staticmethod
+    @jit(nopython=True)
+    def mean_delta_time(_n, _ta, _tb):
+        return _n * (_tb - _ta)
+
+    @staticmethod
+    @jit(nopython=True)
+    def ang_V_circle(_Period):
+        return (2 * np.pi) / _Period
+
+    @staticmethod
+    @jit(nopython=True)
+    def seconds_finder(_day, _hour, _mins):
+        d_h = (_day * 24) + _hour
+        h_m = (d_h * 60) + _mins
+        return h_m * 60

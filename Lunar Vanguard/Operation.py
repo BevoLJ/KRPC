@@ -1,4 +1,5 @@
 import krpc
+import time
 import numpy as np
 from scipy.constants import g
 from numba import jit
@@ -16,8 +17,8 @@ class Operations:
         self.ap = self.vessel.auto_pilot
         self.control = self.vessel.control
 
-        self.target_orbit_alt = 250000
-        self.target_orbit_inc = 5
+        self.target_orbit_alt = 400000
+        self.target_orbit_inc = 28.36
 
         self.ut = self.conn.add_stream(getattr, self.conn.space_center, "ut")
 
@@ -34,6 +35,11 @@ class Operations:
         self.max_thrust = self.conn.add_stream(getattr, self.vessel, 'max_thrust')
         self.specific_impulse = self.conn.add_stream(getattr, self.vessel, 'vacuum_specific_impulse')
         self.mass = self.conn.add_stream(getattr, self.vessel, 'mass')
+        self.apoapsis_altitude = self.conn.add_stream(getattr, self.vessel.orbit, 'apoapsis_altitude')
+        self.periapsis_altitude = self.conn.add_stream(getattr, self.vessel.orbit, 'periapsis_altitude')
+        self.apoapsis_radius = self.conn.add_stream(getattr, self.vessel.orbit, 'apoapsis')
+        self.periapsis_radius = self.conn.add_stream(getattr, self.vessel.orbit, 'periapsis')
+        self.mean_anomaly = self.conn.add_stream(getattr, self.vessel.orbit, 'mean_anomaly')
 
         # -#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
         #           V E L O C I T Y              #
@@ -63,15 +69,33 @@ class Operations:
 
         return self.burn_time_calc(_isp, _thrust, _mass, _maneuver_dv)
 
+    def ullage_rcs(self):
+        _eng = self.get_active_engine()
+        self.eng_action(_eng, "Shutdown Engine")
+        time.sleep(1.5)
+        self.control.throttle = 1
+        while self.eng_status(_eng, "Propellant") != "Very Stable":
+            print(self.eng_status(_eng, "Propellant"))
+            time.sleep(.1)
+        self.eng_action(_eng, "Activate Engine")
+
     def get_active_engine(self):
         for _eng in self.engines:
             if _eng.engine.active: return _eng
 
-    def eng_status(self):
-        _mod = self.get_active_engine().modules
+    @staticmethod
+    def eng_status(_eng, _status):
+        _mod = _eng.modules
         for _m in _mod:
             if _m.name == "ModuleEnginesRF":
-                return _m.get_field("Status")
+                return _m.get_field(_status)
+
+    @staticmethod
+    def eng_action(_eng, _action):
+        _mod = _eng.modules
+        for _m in _mod:
+            if _m.name == "ModuleEnginesRF":
+                _m.set_action(_action, True)
 
     @staticmethod
     @jit(nopython=True)

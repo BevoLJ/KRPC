@@ -29,7 +29,12 @@ class LunarXFerManager(OrbitManager):
         self.moon_true_anomaly = self.true_anomaly(self.moon_eccentricity(), self.moon_eccentric_anomaly())
         self.moon_longitude_of_pe = self.longitude_of_pe(self.moon_LAN(), self.moon_argument_of_periapsis())
         self.moon_period = self.conn.add_stream(getattr, self.moon, 'period')
+        self.moon_radius = self.conn.add_stream(getattr, self.moon, 'radius')
 
         self.moon_mean_anomaly_at_epoch = self.conn.add_stream(getattr, self.moon, 'mean_anomaly_at_epoch')
         self.moon_epoch = self.conn.add_stream(getattr, self.moon, 'epoch')
 
+    def moon_future_mean(self, _t1):
+        m_n = self.mean_motion(self.mu, self.moon_radius())
+        m_delta = self.mean_delta_time(m_n, self.ut(), _t1)
+        return self.moon_mean_anomaly() + m_delta

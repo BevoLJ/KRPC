@@ -13,14 +13,10 @@ class LaunchManager(Operations):
         self.vessel_flight_bdy = self.conn.add_stream(self.vessel.flight, self.bdy_reference_frame())
         self.vessel_sur_speed = self.conn.add_stream(getattr, self.vessel_flight_bdy(), 'speed')
         self.latitude = self.conn.add_stream(getattr, self.vessel.flight(), 'latitude')
-        self.apoapsis_altitude = self.conn.add_stream(getattr, self.vessel.orbit, 'apoapsis_altitude')
-        self.periapsis_altitude = self.conn.add_stream(getattr, self.vessel.orbit, 'periapsis_altitude')
-        self.apoapsis_radius = self.conn.add_stream(getattr, self.vessel.orbit, 'apoapsis')
-        self.periapsis_radius = self.conn.add_stream(getattr, self.vessel.orbit, 'periapsis')
 
         self.lAz_data = self.azimuth_init()
         self.Q = self.conn.add_stream(getattr, self.vessel.flight(), 'dynamic_pressure')
-        self.mean_anomaly = self.conn.add_stream(getattr, self.vessel.orbit, 'mean_anomaly')
+        self.pitch = self.conn.add_stream(getattr, self.vessel.flight(), 'pitch')
 
         self.altitude = self.conn.add_stream(getattr, self.vessel.flight(), 'mean_altitude')
         self.period = self.conn.add_stream(getattr, self.vessel.orbit, 'period')
@@ -45,6 +41,7 @@ class LaunchManager(Operations):
         def pitch_calcs():
             _pitch = (85 - (1.45 * np.sqrt(_speed))) + (_t_ap_dv / 2)
             return _pitch
+
         return pitch_calcs()
 
     def insertion_pitch(self):
@@ -54,9 +51,15 @@ class LaunchManager(Operations):
         _burn_time = self.maneuver_burn_time(self.circ_dv())
 
         @jit(nopython=True)
-        def pitch_calcs():
+        def pitch_calcs_low():
                 return (_t_ap_dv * (_circ_dv / 1000)) + (_m - (180 - (_burn_time / 12)))
-        return pitch_calcs()
+
+        @jit(nopython=True)
+        def pitch_calcs_high():
+                return (_t_ap_dv * (_circ_dv / 1000)) + (_m - 180)
+
+        if self.target_orbit_alt <= 250000: return pitch_calcs_low()
+        else: return pitch_calcs_high()
 
     def azimuth_init(self):
 
@@ -115,7 +118,7 @@ class LaunchManager(Operations):
 
     # noinspection PyAttributeOutsideInit
     def flameout(self, _mode):
-        if self.eng_status() == "Flame-Out!":
+        if self.eng_status(self.get_active_engine(), "Status") == "Flame-Out!":
             self.control.activate_next_stage()
             time.sleep(1.5)
             self.mode = _mode
