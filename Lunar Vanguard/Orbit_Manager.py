@@ -102,8 +102,8 @@ class OrbitManager(Operations):
     def xfer_radians(_fut_moon_mean, _ves_l_pe, _moon_l_pe):
         _diff_l_pe = np.fabs(_moon_l_pe - _ves_l_pe)
         _moon_to_ves_diff = _fut_moon_mean - _diff_l_pe - np.pi
-        if _moon_to_ves_diff < 0:
-            _fixed_moon_to_ves_diff = _moon_to_ves_diff + (2 * np.pi)
-        else:
-            _fixed_moon_to_ves_diff = _moon_to_ves_diff
-        return _fixed_moon_to_ves_diff
+        # if _moon_to_ves_diff < 0:
+        #     _fixed_moon_to_ves_diff = _moon_to_ves_diff % (2 * np.pi)
+        # else:
+        #     _fixed_moon_to_ves_diff = _moon_to_ves_diff
+        return np.abs(_moon_to_ves_diff)

@@ -20,7 +20,7 @@ class Operations:
         self.CameraMode = self.KSC.CameraMode
 
         self.target_orbit_alt = 400000
-        self.target_orbit_inc = 28.36
+        self.target_orbit_inc = 28.1  # this is lower than Moon for error protection
 
         self.ut = self.conn.add_stream(getattr, self.conn.space_center, "ut")
 
