@@ -1,5 +1,5 @@
 import time
-import numpy as np
+# import numpy as np
 from Launch_UI import LaunchUI
 from Transfer_UI import TransferUI
 
@@ -9,18 +9,19 @@ class LaunchControl(LaunchUI):
         super().__init__()
 
         self.mode = "Launch Prep"
+        self.camera.mode = self.CameraMode.free
         # self.mode = "Cruise"
 
     def launch(self):
-            # -#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
-            #              L A U N C H               #
-            #             P R O G R A M              #
-            # -#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+        # -#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+        #              L A U N C H               #
+        #             P R O G R A M              #
+        # -#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 
         self.ap.engage()
         # print("For 250km Parking Orbit - Moon Shot launch at LAN = 353.55846")
-        print("For 400km Parking Orbit - Moon Shot launch at LAN = 334.56846")
-        # self.control.throttle = 1
+        print("For 400km Parking Orbit - Moon Shot launch at LAN 327.88467 = 334.56846 - 6.68379")
+        self.control.throttle = 1
         ui = LaunchUI()
 
         while self.mode == "Launch Prep":
@@ -76,30 +77,49 @@ class LunarTransfer(TransferUI):
         super().__init__()
 
         self.mode = "LEO Cruise"
+        self.injection_ETA = 0
+        self.camera.mode = self.CameraMode.free
+        self.ap.set_pid_parameters(1, 0, 0)
 
     def transfer(self):
-            # -#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
-            #               L U N A R                #
-            #            T R A N S F E R             #
-            # -#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+        # -#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+        #               L U N A R                #
+        #            T R A N S F E R             #
+        # -#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 
-        # self.ap.reference_frame = self.vessel.orbital_reference_frame
-        # self.ap.target_direction = (0, 1, 0)
-        # self.ap.engage()
-        # ui = TransferUI()
-        # d = 2
-        # h = 4
-        # m = 38
-        print("XFer:      " + str(self.seconds_finder(2, 4, 38)))
-        print(np.rad2deg(self.moon_future_mean(self.ut() + self.seconds_finder(2, 4, 38))))
+        self.control.rcs = False
+        self.ap.reference_frame = self.vessel.orbital_reference_frame
+        self.ap.target_direction = (0, 1, 0)
+        self.ap.engage()
+        ui = TransferUI()
 
-        # while self.mode != "XFer Complete":
-        #     ui.transfer_ui("LEO Cruise")
-        #     time.sleep(.1)
+        while self.mode != "Xfered":
+            self.injection_ETA = self.xfer_ETA(self.ut() + self.seconds_finder(5, 16, 00),
+                                               self.moon_LAN(), self.moon_argument_of_periapsis())
+
+            if self.mode == "LEO Cruise":
+                print(self.injection_ETA)
+                self.KSC.warp_to(self.ut() + self.injection_ETA - 180)
+                time.sleep(1)
+                if self.injection_ETA < 178: self.mode = "Injection"
+
+            if self.mode == "Injection":
+                self.fix_aoa()
+                if self.angle_of_attack(self.vessel_orbit_direction(), self.vessel_velocity_direction()) < 1:
+                    self.mode = "Injection"
+
+            if self.mode != "Injection":
+                self.flameout("Transfer")
+                if self.vessel.mass < 75:
+                    self.mode = "Xfered"
+
+            ui.transfer_ui(self.mode)
 
 
 def main():
-    LaunchControl().launch()
+    # LaunchControl().launch()
     LunarTransfer().transfer()
 
+
 main()
+

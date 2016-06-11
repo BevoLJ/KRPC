@@ -16,6 +16,8 @@ class Operations:
 
         self.ap = self.vessel.auto_pilot
         self.control = self.vessel.control
+        self.camera = self.KSC.camera
+        self.CameraMode = self.KSC.CameraMode
 
         self.target_orbit_alt = 400000
         self.target_orbit_inc = 28.36
@@ -72,11 +74,9 @@ class Operations:
     def ullage_rcs(self):
         _eng = self.get_active_engine()
         self.eng_action(_eng, "Shutdown Engine")
-        time.sleep(1.5)
+        time.sleep(1.25)
         self.control.throttle = 1
-        while self.eng_status(_eng, "Propellant") != "Very Stable":
-            print(self.eng_status(_eng, "Propellant"))
-            time.sleep(.1)
+        while self.eng_status(_eng, "Propellant") != "Very Stable": time.sleep(.1)
         self.eng_action(_eng, "Activate Engine")
 
     def get_active_engine(self):
@@ -87,15 +87,13 @@ class Operations:
     def eng_status(_eng, _status):
         _mod = _eng.modules
         for _m in _mod:
-            if _m.name == "ModuleEnginesRF":
-                return _m.get_field(_status)
+            if _m.name == "ModuleEnginesRF": return _m.get_field(_status)
 
     @staticmethod
     def eng_action(_eng, _action):
         _mod = _eng.modules
         for _m in _mod:
-            if _m.name == "ModuleEnginesRF":
-                _m.set_action(_action, True)
+            if _m.name == "ModuleEnginesRF": _m.set_action(_action, True)
 
     @staticmethod
     @jit(nopython=True)

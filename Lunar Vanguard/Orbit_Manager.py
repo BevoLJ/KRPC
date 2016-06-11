@@ -42,18 +42,13 @@ class OrbitManager(Operations):
 
     # def rcs_prograde(self):
 
-    def angle_of_attack(self):
-        _d = self.vessel_orbit_direction()
-        _v = self.vessel_velocity_direction()
-
+    @staticmethod
+    @jit(nopython=True)
+    def angle_of_attack(_d, _v):
         _dp = _d[0] * _v[0] + _d[1] * _v[1] + _d[2] * _v[2]
         _vmag = np.sqrt(_v[0] ** 2 + _v[1] ** 2 + _v[2] ** 2)
-
-        if _dp == 0:
-            _angle = 0
-        else:
-            _angle = abs(np.arccos(_dp / _vmag) * (180. / np.pi))
-
+        if _dp == 0: _angle = 0
+        else: _angle = abs(np.arccos(_dp / _vmag) * (180. / np.pi))
         return _angle
 
     @staticmethod
@@ -87,17 +82,28 @@ class OrbitManager(Operations):
 
     @staticmethod
     @jit(nopython=True)
-    def mean_delta_time(_n, _ta, _tb):
-        return _n * (_tb - _ta)
-
-    @staticmethod
-    @jit(nopython=True)
     def ang_V_circle(_Period):
         return (2 * np.pi) / _Period
 
     @staticmethod
     @jit(nopython=True)
+    def mean_delta_time(_n, _ta, _tb):
+        return _n * (_tb - _ta)
+
+    @staticmethod
+    @jit(nopython=True)
     def seconds_finder(_day, _hour, _mins):
-        d_h = (_day * 24) + _hour
-        h_m = (d_h * 60) + _mins
-        return h_m * 60
+        _d_h = (_day * 24) + _hour
+        _h_m = (_d_h * 60) + _mins
+        return _h_m * 60
+
+    @staticmethod
+    @jit(nopython=True)
+    def xfer_radians(_fut_moon_mean, _ves_l_pe, _moon_l_pe):
+        _diff_l_pe = np.fabs(_moon_l_pe - _ves_l_pe)
+        _moon_to_ves_diff = _fut_moon_mean - _diff_l_pe - np.pi
+        if _moon_to_ves_diff < 0:
+            _fixed_moon_to_ves_diff = _moon_to_ves_diff + (2 * np.pi)
+        else:
+            _fixed_moon_to_ves_diff = _moon_to_ves_diff
+        return _fixed_moon_to_ves_diff

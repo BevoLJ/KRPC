@@ -30,8 +30,7 @@ class LaunchManager(Operations):
         if self.vessel_sur_speed() < 80: self.ap.target_pitch_and_heading(90, 90)
         elif self.vessel_sur_speed() < 2200 or (self.apoapsis_altitude() < (self.target_orbit_alt * .92)):
             self.ap.target_pitch_and_heading(self.gravity_pitch(), self.azimuth(self.lAz_data))
-        else:
-            self.ap.target_pitch_and_heading(self.insertion_pitch(), self.azimuth(self.lAz_data))
+        else: self.ap.target_pitch_and_heading(self.insertion_pitch(), self.azimuth(self.lAz_data))
 
     def gravity_pitch(self):
         _t_ap_dv = self.target_apoapsis_speed_dv()

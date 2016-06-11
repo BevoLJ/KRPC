@@ -65,7 +65,7 @@ class LaunchUI(LaunchManager):
         self.text_4.content = 'Periapsis   :  %d km' % (self.periapsis_altitude() / 1000)
         self.text_5.content = 'Q                :  %d kPa' % (self.Q())
         self.text_6.content = 'Azimuth     :  %d deg' % (self.azimuth(self.lAz_data))
-        self.text_7.content = 'Pitch        :  %d deg' % (self.pitch())
+        self.text_7.content = 'Pitch          :  %d deg' % (self.pitch())
         self.text_8.content = 'Ap dV        :  %d m/s' % (self.target_apoapsis_speed_dv())
         self.text_9.content = 'Circ dV          :  %d m/s' % (self.circ_dv())
         self.text_10.content = 'Circ Burn Time:  %d sec' % (self.maneuver_burn_time(self.circ_dv()))

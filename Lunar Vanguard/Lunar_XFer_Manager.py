@@ -1,4 +1,5 @@
-# import numpy as np
+import numpy as np
+import time
 # from numba import jit
 from Orbit_Manager import OrbitManager
 
@@ -34,7 +35,51 @@ class LunarXFerManager(OrbitManager):
         self.moon_mean_anomaly_at_epoch = self.conn.add_stream(getattr, self.moon, 'mean_anomaly_at_epoch')
         self.moon_epoch = self.conn.add_stream(getattr, self.moon, 'epoch')
 
-    def moon_future_mean(self, _t1):
-        m_n = self.mean_motion(self.mu, self.moon_radius())
-        m_delta = self.mean_delta_time(m_n, self.ut(), _t1)
-        return self.moon_mean_anomaly() + m_delta
+    def moon_future_mean(self, _ta):
+        _m_n = self.mean_motion(self.mu, self.moon_radius())
+        _m_delta = self.mean_delta_time(_m_n, self.ut(), _ta)
+        return self.moon_mean_anomaly() + _m_delta
+
+    def moon_xfer_angle(self, _ta, _target_LAN, _target_arg_pe):
+        _fut_moon_mean = self.moon_future_mean(_ta)
+        _ves_l_pe = self.longitude_of_pe(self.LAN(), self.argument_of_periapsis()) % (2 * np.pi)
+        _moon_l_pe = self.longitude_of_pe(_target_LAN, _target_arg_pe)
+
+        return self.xfer_radians(_fut_moon_mean, _ves_l_pe, _moon_l_pe)
+
+    def xfer_ETA(self, _ta, _target_LAN, _target_arg_pe):
+        ang_v = self.ang_V_circle(self.period())
+        _xfer_radians = self.moon_xfer_angle(_ta, _target_LAN, _target_arg_pe)
+        if self.mean_anomaly() < _xfer_radians: _rad_diff = (_xfer_radians - self.mean_anomaly()) % (2 * np.pi)
+        else: _rad_diff = (_xfer_radians - self.mean_anomaly()) % (2 * np.pi)
+        return _rad_diff / ang_v
+
+    def fix_aoa(self):
+        self.control.rcs = True
+        time.sleep(3)
+        self.control.rcs = False
+        while self.angle_of_attack(self.vessel_orbit_direction(), self.vessel_velocity_direction()) > 30:
+            print(self.xfer_ETA(self.ut() + self.seconds_finder(5, 16, 00),
+                                               self.moon_LAN(), self.moon_argument_of_periapsis()))
+            time.sleep(.1)
+        self.control.rcs = True
+        time.sleep(2)
+        self.ap.disengage()
+        self.control.sas = True
+        time.sleep(3)
+        self.ap.engage()
+        while self.angle_of_attack(self.vessel_orbit_direction(), self.vessel_velocity_direction()) > 1:
+            print(self.xfer_ETA(self.ut() + self.seconds_finder(5, 16, 00),
+                                               self.moon_LAN(), self.moon_argument_of_periapsis()))
+            time.sleep(.1)
+        self.control.throttle = 1
+        self.ap.disengage()
+        self.control.sas = True
+        time.sleep(2)
+
+    # noinspection PyAttributeOutsideInit
+    def flameout(self, _mode):
+        if self.eng_status(self.get_active_engine(), "Status") == "Flame-Out!":
+            self.control.activate_next_stage()
+            time.sleep(1.5)
+            self.mode = _mode

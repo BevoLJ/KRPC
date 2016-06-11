@@ -63,9 +63,9 @@ class TransferUI(LunarXFerManager):
         self.text_2.content = 'Apoapsis   :  %d km' % (self.apoapsis_altitude() / 1000)
         self.text_3.content = 'ETA Ap      :  %d sec' % (self.ETA_ap())
         self.text_4.content = 'Periapsis   :  %d km' % (self.periapsis_altitude() / 1000)
-        self.text_5.content = 'true_anomaly           :  %d deg' % self.true_anomaly(self.eccentricity(),
+        self.text_5.content = 'true_anomaly      :  %d deg' % self.true_anomaly(self.eccentricity(),
                                                                            self.eccentric_anomaly())
-        self.text_6.content = 'Moon True Anomaly:  %d deg' % self.true_anomaly(self.moon_eccentricity(),
+        self.text_6.content = 'Moon TA:      %d deg' % self.true_anomaly(self.moon_eccentricity(),
                                                                            self.moon_eccentric_anomaly())
         self.text_7.content = 'Period        :  %d mins' % ((self.period()) / 60)
         self.text_8.content = 'LAN             :  %d deg' % (np.rad2deg(self.LAN()))
