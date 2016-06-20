@@ -47,11 +47,6 @@ class OrbitManager(Operations):
             if self.angle_of_attack(self.vessel_orbit_direction(), self.vessel_velocity_direction()) > 30:
                 self.ap.engage()
                 self.control.rcs = True
-                time.sleep(2)
-                self.control.rcs = False
-                while self.angle_of_attack(self.vessel_orbit_direction(), self.vessel_velocity_direction()) > 20:
-                    time.sleep(.1)
-                self.control.rcs = True
             time.sleep(.1)
 
     @staticmethod

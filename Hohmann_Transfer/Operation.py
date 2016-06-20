@@ -43,10 +43,10 @@ class Operations:
         self.periapsis_radius = self.conn.add_stream(getattr, self.vessel.orbit, 'periapsis')
         self.mean_anomaly = self.conn.add_stream(getattr, self.vessel.orbit, 'mean_anomaly')
 
-        self.target_orbit = 1000000
+        self.target_orbit = 12001000
         self.target_orbit_radius = self.target_orbit + self.radius_eq
         self.parking_orbit_alt = 250000
-        self.parking_orbit_inc = 90
+        self.parking_orbit_inc = 77
 
         # -#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
         #           V E L O C I T Y              #
@@ -160,3 +160,39 @@ class Operations:
     @jit(nopython=True)
     def ap_v_calc(_R_ap, _R_pe, _mu):
         return np.sqrt((2 * _mu * _R_pe) / (_R_ap * (_R_ap + _R_pe)))
+
+    @staticmethod
+    def list_modules(_part):
+        for p in _part:
+            mod = p.modules
+            for m in mod:
+                print(m.name)
+
+    @staticmethod
+    def list_actions(_engines, _mod):
+        mod = _engines.modules
+        print(" ")
+        print("- A C T I O N S -")
+        for m in mod:
+            if m.name == _mod:
+                print("- " + m.name)
+                act = m.actions
+                for a in act:
+                    print("   " + a)
+        print(" ")
+        print("- F I E L D S -")
+        for m in mod:
+            if m.name == _mod:
+                print("- " + m.name)
+                flds = m.fields
+                for k, v in flds.items():
+                    print("   " + k, ": " + v)
+
+    @staticmethod
+    def list_parts(_parts):
+        for p in _parts:
+            print("-------")
+            print(p)
+            print(" Engine Name : " + p.name)
+            print("  Activated Stage: " + str(p.stage))
+            print("  Decouple Stage:  " + str(p.decouple_stage))

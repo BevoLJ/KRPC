@@ -12,8 +12,8 @@ class UI(LaunchManager, OrbitManager):
         self.ETA_ap = self.conn.add_stream(getattr, self.vessel.orbit, 'time_to_apoapsis')
 
         _screen_size = self.conn.ui_extended.rect_transform.size
-        _panel_flight = self.conn.ui_extended.add_panel()
-        _rect = _panel_flight.rect_transform
+        self._panel_flight = self.conn.ui_extended.add_panel()
+        _rect = self._panel_flight.rect_transform
         _rect.size = (260, 200)
         _rect.position = (50 - (_screen_size[0] / 2), 350)
 
@@ -25,46 +25,49 @@ class UI(LaunchManager, OrbitManager):
         # _rect.position = (-830, 300)
         # _rect.position = (50 - (_screen_size[0]), 350)
 
-        self.text_1 = _panel_flight.add_text("")
+        self.text_1 = self._panel_flight.add_text("")
         self.text_1.rect_transform.position = (40, 80)
         # self.text_1.color = (1, 1, 1)
         self.text_1.size = 13
-        self.text_2 = _panel_flight.add_text("")
+        self.text_2 = self._panel_flight.add_text("")
         self.text_2.rect_transform.position = (40, 60)
         # self.text_1.color = (1, 1, 1)
         self.text_2.size = 12
-        self.text_3 = _panel_flight.add_text("")
+        self.text_3 = self._panel_flight.add_text("")
         self.text_3.rect_transform.position = (40, 45)
         # self.text_1.color = (1, 1, 1)
         self.text_3.size = 12
-        self.text_4 = _panel_flight.add_text("")
+        self.text_4 = self._panel_flight.add_text("")
         self.text_4.rect_transform.position = (40, 25)
         # self.text_1.color = (1, 1, 1)
         self.text_4.size = 12
-        self.text_5 = _panel_flight.add_text("")
+        self.text_5 = self._panel_flight.add_text("")
         self.text_5.rect_transform.position = (40, 10)
         # self.text_1.color = (1, 1, 1)
         self.text_5.size = 12
-        self.text_6 = _panel_flight.add_text("")
+        self.text_6 = self._panel_flight.add_text("")
         self.text_6.rect_transform.position = (40, -20)
         # self.text_1.color = (1, 1, 1)
         self.text_6.size = 12
-        self.text_7 = _panel_flight.add_text("")
+        self.text_7 = self._panel_flight.add_text("")
         self.text_7.rect_transform.position = (40, -35)
         # self.text_1.color = (1, 1, 1)
         self.text_7.size = 12
-        self.text_8 = _panel_flight.add_text("")
+        self.text_8 = self._panel_flight.add_text("")
         self.text_8.rect_transform.position = (40, -55)
         # self.text_1.color = (1, 1, 1)
         self.text_8.size = 12
-        self.text_9 = _panel_flight.add_text("")
+        self.text_9 = self._panel_flight.add_text("")
         self.text_9.rect_transform.position = (40, -75)
         # self.text_1.color = (1, 1, 1)
         self.text_9.size = 12
-        self.text_10 = _panel_flight.add_text("")
+        self.text_10 = self._panel_flight.add_text("")
         self.text_10.rect_transform.position = (40, -90)
         # self.text_1.color = (1, 1, 1)
         self.text_10.size = 12
+
+    def remove_ui(self):
+        self._panel_flight.remove()
 
     def gravity_turn(self, mode):
 

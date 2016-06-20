@@ -12,6 +12,7 @@ class LaunchControl(UI):
         self.mode = "Launch Prep"
         self.camera.mode = self.CameraMode.free
         self.falafels = True
+        self.boosters = True
 
     def launch(self):
         # -#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
@@ -23,14 +24,26 @@ class LaunchControl(UI):
         ui = UI()
 
         while self.mode == "Launch Prep":
-            if self.control.get_action_group(9): self.mode = "Launch"; self.control.activate_next_stage()
+            if self.control.get_action_group(9):
+                self.control.throttle = 1
+                self.control.activate_next_stage()
+                self.mode = "Launch"
             time.sleep(1)
 
         while self.mode != "Orbit":
             self.pitch_and_heading()
 
+            if self.boosters:
+                if self.named_flameout("FASADeltaCastorSrb"):
+                    self.control.activate_next_stage()
+                    time.sleep(1.5)
+                    self.boosters = False
+
+            if self.mode == "Testing":
+                self.list_parts(self.engines)
+                self.mode = "Orbit"
+
             if self.mode == "Launch":
-                self.control.throttle = 1
                 _twr = self.twr_calc(self.thrust(), self.mass(), self.altitude(), self.radius_eq, self.mu)
                 if _twr > 1:
                     self.lAz_data = self.azimuth_init()
@@ -43,7 +56,11 @@ class LaunchControl(UI):
                     self.control.activate_next_stage()
                     self.falafels = False
 
-                self.flameout("Upper Stage")
+                if self.named_flameout("R7.Core.Engine"):
+                    self.control.throttle = 0
+                    time.sleep(1.5)
+                    self.control.activate_next_stage()
+                    self.mode = "Upper Stage"
 
             if self.mode == "Upper Stage":
 
@@ -70,6 +87,7 @@ class LaunchControl(UI):
 
             ui.gravity_turn(self.mode)
 
+        ui.remove_ui()
         self.control.rcs = True
         self.ap.disengage()
         self.control.sas = True
@@ -91,7 +109,7 @@ class HohmannTransfer(OrbitManager):
         #            T R A N S F E R             #
         # -#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 
-        self.control.rcs = False
+        self.control.rcs = True
         self.control.throttle = 0
         time.sleep(1)
         self.ap.reference_frame = self.vessel.orbital_reference_frame
@@ -106,9 +124,8 @@ class HohmannTransfer(OrbitManager):
                 _hoh_xfer_dv = self.transfer_injection_dv(self.mu, self.semi_major_axis(), self.target_orbit_radius)
                 _time_to_burn = self.time_to_burn(self.ETA_pe(), self.maneuver_burn_time(_hoh_xfer_dv))
 
-                if _time_to_burn > 120: self.KSC.warp_to(self.ut() + _time_to_burn - 90)
-                elif _time_to_burn > 34: self.fix_aoa(_time_to_burn, self.maneuver_burn_time(_hoh_xfer_dv))
-                elif _time_to_burn < 5: self.ullage_rcs(); self.mode = "Xfer Burn"
+                if _time_to_burn > 60: self.KSC.warp_to(self.ut() + _time_to_burn - 45)
+                elif _time_to_burn < 3: self.ullage_rcs(); self.mode = "Xfer Burn"
 
             if self.mode == "Xfer Burn":
                 self.control.rcs = False
@@ -118,11 +135,10 @@ class HohmannTransfer(OrbitManager):
                     self.mode = "Xfer Cruise"
 
             if self.mode == "Xfer Cruise":
-                _time_to_burn = self.time_to_burn(self.ETA_ap(), self.maneuver_burn_time(self.circ_dv()))
-
-                if _time_to_burn > 120: self.KSC.warp_to(self.ut() + _time_to_burn - 90)
-                elif _time_to_burn > 34: self.fix_aoa(_time_to_burn, self.maneuver_burn_time(self.circ_dv()))
-                elif _time_to_burn < 5:
+                self.control.rcs = True
+                _time_to_final_burn = self.time_to_burn(self.ETA_ap(), self.maneuver_burn_time(self.circ_dv()))
+                if _time_to_final_burn > 60: self.KSC.warp_to(self.ut() + _time_to_final_burn - 45)
+                elif _time_to_final_burn < 3:
                     self.ullage_rcs()
                     self.mode = "Final Burn"
 
