@@ -71,13 +71,15 @@ class Operations:
 
         return self.burn_time_calc(_isp, _thrust, _mass, _maneuver_dv)
 
-    def ullage_rcs(self):
+    def ullage_rcs(self): #changes designed to foolproof RCS ullage, needs testing!
         _eng = self.get_active_engine()
         self.eng_action(_eng, "Shutdown Engine")
         time.sleep(1.25)
-        self.control.throttle = 1
+        self.control.rcs = 1 #explicitly set RCS on
+        self.control.forward = 1 #thrust prograde with RCS
         while self.eng_status(_eng, "Propellant") != "Very Stable": time.sleep(.1)
         self.eng_action(_eng, "Activate Engine")
+        self.control.forward = 0 #stop RCS prograde thrust
 
     def get_active_engine(self):
         for _eng in self.engines:
