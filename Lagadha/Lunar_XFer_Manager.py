@@ -63,8 +63,7 @@ class LunarXFerManager(OrbitManager):
     # noinspection PyAttributeOutsideInit
     def flameout(self, _mode):
         if self.eng_status(self.get_active_engine(), "Status") == "Flame-Out!":
-            self.control.activate_next_stage()
-            time.sleep(1.5)
+            self.stage()
             self.mode = _mode
 
     # noinspection PyAttributeOutsideInit
@@ -75,3 +74,36 @@ class LunarXFerManager(OrbitManager):
                     return True
                 else:
                     return False
+
+    def injection_ETA(self):
+        _eta = self.ut() + self.seconds_finder(6, 12, 0)
+        return self.xfer_ETA(_eta, self.moon_LAN(), self.moon_argument_of_periapsis())
+
+    def xfer_setup(self):
+        self.control.rcs = True
+        self.control.sas = True
+        self.ap.sas_mode = self.KSC.SASMode.prograde
+        self.ap.reference_frame = self.vessel.orbital_reference_frame
+        self.control.throttle = 0
+        time.sleep(2)
+
+    def warp_moon(self):
+        while self.body().name == "Earth":
+            if self.altitude() < 2000000:
+                self.KSC.rails_warp_factor = 2
+            elif self.altitude() < 35000000:
+                self.KSC.rails_warp_factor = 3
+            elif self.altitude() < 300000000:
+                self.KSC.rails_warp_factor = 5
+            elif self.altitude() < 375000000:
+                self.KSC.rails_warp_factor = 4
+            time.sleep(.01)
+        self.KSC.rails_warp_factor = 0
+
+    def capture_burn(self):
+        self.KSC.warp_to(self.ut() + self.ETA_pe() - 90)
+        self.ap.sas_mode = self.KSC.SASMode.retrograde
+        time.sleep(40)
+        self.ullage_rcs()
+        self.control.throttle = 1
+        while self.eccentricity() > .75: time.sleep(.1)

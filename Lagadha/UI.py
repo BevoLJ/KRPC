@@ -1,9 +1,9 @@
 # import time
 from Launch_Manager import LaunchManager
-from Orbit_Manager import OrbitManager
+from Lunar_XFer_Manager import LunarXFerManager
 
 
-class UI(LaunchManager, OrbitManager):
+class UI(LaunchManager, LunarXFerManager):
 
     def __init__(self):
         super().__init__()
@@ -89,11 +89,3 @@ class UI(LaunchManager, OrbitManager):
         self.text_3.content = 'ETA Ap      :  %d sec' % (self.ETA_ap())
         self.text_4.content = 'Periapsis   :  %d km' % (self.periapsis_altitude() / 1000)
         self.text_5.content = 'ETA Pe      :  %d sec' % (self.ETA_pe())
-        self.text_7.content = 'Engine:  ' + self.get_active_engine().name
-        if mode == "LEO Cruise" or "Transfer Burn":
-            _hoh_xfer_dv = self.transfer_injection_dv(self.mu, self.semi_major_axis(), self.target_orbit_radius)
-            self.text_9.content = 'Xfer dV          :  %d m/s' % _hoh_xfer_dv
-            self.text_10.content = 'Xfer Burn Time:  %d sec' % (self.maneuver_burn_time(_hoh_xfer_dv))
-        if mode == "Transfer Cruise" or "Final Burn":
-            self.text_9.content = 'Circ dV          :  %d m/s' % (self.circ_dv())
-            self.text_10.content = 'Circ Burn Time:  %d sec' % (self.maneuver_burn_time(self.circ_dv()))

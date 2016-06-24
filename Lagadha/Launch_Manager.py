@@ -115,11 +115,9 @@ class LaunchManager(Operations):
     # noinspection PyAttributeOutsideInit
     def flameout(self, _mode):
         if self.eng_status(self.get_active_engine(), "Status") == "Flame-Out!":
-            self.control.activate_next_stage()
-            time.sleep(1.5)
+            self.stage()
             self.mode = _mode
 
-    # noinspection PyAttributeOutsideInit
     def named_flameout(self, _eng_name):
         for eng in self.engines:
             if eng.name == _eng_name:
@@ -133,3 +131,10 @@ class LaunchManager(Operations):
             if _eng.name == _eng_name:
                 if not _eng.engine.active:
                     _eng.engine.active = True
+
+    def launch_final(self):
+        self.control.rcs = True
+        self.stage()
+        self.ap.disengage()
+        self.control.sas = True
+        time.sleep(2)

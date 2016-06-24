@@ -37,7 +37,7 @@ class OrbitManager(Operations):
         self.orb_reference_frame = self.conn.add_stream(getattr, self.vessel.orbit.body, 'orbital_reference_frame')
         self.vessel_orbit_direction = self.conn.add_stream(self.vessel.direction, self.orb_reference_frame())
         self.vessel_velocity_direction = self.conn.add_stream(self.vessel.velocity, self.orb_reference_frame())
-        self.bdy__non_rot_reference_frame = self.conn.add_stream(getattr, self.body, 'non_rotating_reference_frame')
+        self.bdy__non_rot_reference_frame = self.conn.add_stream(getattr, self.body(), 'non_rotating_reference_frame')
         self.vessel_flight_bdy_non_rot = self.conn.add_stream(self.vessel.flight, self.bdy__non_rot_reference_frame())
         self.vessel_orb_speed = self.conn.add_stream(getattr, self.vessel_flight_bdy_non_rot(), 'speed')
 
