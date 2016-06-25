@@ -1,6 +1,7 @@
 import time
 from UI import UI
 from Lunar_XFer_Manager import LunarXFerManager
+import numpy as np
 
 
 class LaunchControl(UI):
@@ -90,34 +91,48 @@ class LunarTransfer(LunarXFerManager):
             ui.transfer(self.mode)
 
         self.control.throttle = 0
-        self.warp_moon()
 
 
 class LunarCapture(LunarXFerManager):
     def __init__(self):
         super().__init__()
 
-        self.ui = UI()
-
     def capture(self):
         # -#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
-        #               L U N A R                #
-        #            T R A N S F E R             #
+        #              L U N A R                 #
+        #            C A P T U R E               #
         # -#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 
+        self.warp_moon()
         self.xfer_setup()
         self.control.toggle_action_group(2)
-        print(self.periapsis_altitude())
-        print(self.apoapsis_altitude())
 
         self.capture_burn()
         self.control.throttle = 0
 
+        self.lmo_burn()
+        self.impact_burn()
+
+
+class Testing(LunarXFerManager):
+    def __init__(self):
+        super().__init__()
+
+    def test(self):
+        # -#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+        #             T E S T I N G              #
+        # -#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+
+        while True:
+            print(np.rad2deg(self.moon_mean_anomaly()))
+            time.sleep(1)
+
 
 def main():
-    LaunchControl().launch()
-    LunarTransfer().transfer()
-    LunarCapture().capture()
+    # LaunchControl().launch()
+    # LunarTransfer().transfer()
+    # LunarCapture().capture()
+    Testing().test()
 
 
 main()

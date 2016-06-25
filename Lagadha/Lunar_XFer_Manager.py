@@ -85,11 +85,12 @@ class LunarXFerManager(OrbitManager):
         self.ap.sas_mode = self.KSC.SASMode.prograde
         self.ap.reference_frame = self.vessel.orbital_reference_frame
         self.control.throttle = 0
-        time.sleep(2)
+        time.sleep(3)
 
     def warp_moon(self):
         while self.body().name == "Earth":
-            if self.altitude() < 2000000:
+            if self.altitude() < 200000:
+                print(self.altitude())
                 self.KSC.rails_warp_factor = 2
             elif self.altitude() < 35000000:
                 self.KSC.rails_warp_factor = 3
@@ -106,4 +107,45 @@ class LunarXFerManager(OrbitManager):
         time.sleep(40)
         self.ullage_rcs()
         self.control.throttle = 1
-        while self.eccentricity() > .75: time.sleep(.1)
+        while self.eccentricity() > .2: time.sleep(.1)
+
+    def lmo_burn(self):
+        self.KSC.warp_to(self.ut() + self.ETA_ap() - 35)
+        self.ap.sas_mode = self.KSC.SASMode.retrograde
+        time.sleep(25)
+        self.ullage_rcs()
+        self.control.throttle = 1
+        while self.periapsis_altitude() > 125000: time.sleep(.1)
+        self.control.throttle = 0
+        self.KSC.warp_to(self.ut() + self.ETA_pe() - 35)
+        self.ap.sas_mode = self.KSC.SASMode.retrograde
+        self.control.toggle_action_group(2)
+        time.sleep(25)
+        self.ullage_rcs()
+        self.control.throttle = 1
+        while self.periapsis_altitude() > 50000:
+            if self.eccentricity() > .05: time.sleep(.1)
+        self.control.throttle = 0
+
+    def tank_enable(self):
+        for p in self.parts.all:
+            if 'Hydrazine' in p.resources.names:
+                for r in p.resources.with_resource('Hydrazine'):
+                    r.enabled = True
+
+    def impact_burn(self):
+        self.control.throttle = 0
+        self.control.rcs = False
+        self.control.sas = False
+        self.stage()
+        self.tank_enable()
+        time.sleep(2)
+        self.control.rcs = True
+        self.control.sas = True
+        time.sleep(3)
+        self.ap.sas_mode = self.KSC.SASMode.retrograde
+        time.sleep(3)
+        self.control.throttle = 1
+        while self.periapsis_radius() > self.body().equatorial_radius - 20000:
+            time.sleep(1)
+        self.control.throttle = 0
